@@ -4990,8 +4990,11 @@ async function pullFromCloud(force=false) {
             
             const mergeById = (cloudArr, localArr) => {
                 const map = new Map();
-                if (Array.isArray(cloudArr)) cloudArr.forEach(x => { if (x && x.id && !(db.deletedIds||[]).includes(x.id)) map.set(x.id, x); });
-                if (Array.isArray(localArr)) localArr.forEach(x => { if (x && x.id && !(db.deletedIds||[]).includes(x.id)) map.set(x.id, x); });
+                // BUG FIX: use merged deletedIds (cloud + local) instead of only local db.deletedIds
+                // Previously, restored local deletedIds could incorrectly filter out valid cloud history entries
+                const mergedDeletedIds = new Set([...(cloud.deletedIds||[]), ...(db.deletedIds||[])]);
+                if (Array.isArray(cloudArr)) cloudArr.forEach(x => { if (x && x.id && !mergedDeletedIds.has(x.id)) map.set(x.id, x); });
+                if (Array.isArray(localArr)) localArr.forEach(x => { if (x && x.id && !mergedDeletedIds.has(x.id)) map.set(x.id, x); });
                 return Array.from(map.values());
             };
 
