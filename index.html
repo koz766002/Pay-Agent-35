@@ -142,7 +142,8 @@
         .card { background:var(--surface); border-radius:var(--r); padding:20px; border:1px solid var(--border); box-shadow:var(--shadow2); margin-bottom:16px; } 
         .card-sm { background:var(--surface); border-radius:var(--r2); padding:14px; border:1px solid var(--border); }
         
-        .hero { border-radius:var(--r); padding:24px 22px 20px; color:#fff; position:relative; overflow:hidden; margin-bottom:16px; background:linear-gradient(135deg,#3B5BDB 0%,#7048E8 60%,#9B59B6 100%); box-shadow:var(--shadow-pop); transform:translateZ(0); } 
+        :root { --hero-bg: linear-gradient(135deg,#3B5BDB 0%,#7048E8 60%,#9B59B6 100%); }
+        .hero { border-radius:var(--r); padding:24px 22px 20px; color:#fff; position:relative; overflow:hidden; margin-bottom:16px; background:var(--hero-bg); box-shadow:var(--shadow-pop); transform:translateZ(0); transition: background 0.6s ease; } 
         .hero::before { content:''; position:absolute; top:-60px; right:-40px; width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,0.07); } 
         .hero::after { content:''; position:absolute; bottom:-80px; left:-20px; width:240px; height:240px; border-radius:50%; background:rgba(255,255,255,0.04); } 
         .hero-grid { position:absolute; inset:0; background-image:repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(255,255,255,0.025) 28px,rgba(255,255,255,0.025) 29px),repeating-linear-gradient(90deg,transparent,transparent 28px,rgba(255,255,255,0.025) 28px,rgba(255,255,255,0.025) 29px); z-index:0; pointer-events:none; } 
@@ -161,6 +162,17 @@
         .decor-item.slow { animation-duration: 4s; }
         @keyframes floatDecor { from { transform: translateY(0px) rotate(0deg); } to { transform: translateY(10px) rotate(8deg); } }
         @keyframes floatUp { 0% { transform: translateY(20px) scale(0.9); opacity: 0; } 50% { opacity: 0.5; } 100% { transform: translateY(-30px) scale(1.1); opacity: 0; } }
+        @keyframes petalFall { 0% { transform: translateY(-10px) translateX(0px) rotate(0deg); opacity:0; } 10% { opacity:0.7; } 90% { opacity:0.5; } 100% { transform: translateY(120px) translateX(20px) rotate(360deg); opacity:0; } }
+        @keyframes waterFall { 0% { transform: translateY(-5px) scaleY(0.8); opacity:0; } 15% { opacity:0.7; } 85% { opacity:0.4; } 100% { transform: translateY(130px) scaleY(1.2); opacity:0; } }
+        @keyframes snowFall { 0% { transform: translateY(-10px) translateX(0) rotate(0deg); opacity:0; } 20% { opacity:0.8; } 80% { opacity:0.5; } 100% { transform: translateY(130px) translateX(15px) rotate(180deg); opacity:0; } }
+        @keyframes lanternFloat { 0%,100%{ transform:translateY(0px) rotate(-3deg); } 50%{ transform:translateY(-12px) rotate(3deg); } }
+        @keyframes sparkle { 0%,100%{ opacity:0.2; transform:scale(0.8); } 50%{ opacity:0.9; transform:scale(1.2); } }
+        @keyframes fireSway { 0%,100%{ transform:scaleX(1) translateY(0); } 50%{ transform:scaleX(0.85) translateY(-3px); } }
+        .decor-petal-animate { animation: petalFall linear infinite; }
+        .decor-water-animate { animation: waterFall linear infinite; }
+        .decor-snow-animate { animation: snowFall linear infinite; }
+        .decor-lantern-animate { animation: lanternFloat ease-in-out infinite; }
+        .decor-sparkle-animate { animation: sparkle ease-in-out infinite; }
 
         .sgrid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; } 
         .scard { background:var(--surface); border-radius:var(--r2); padding:14px 16px; border:1px solid var(--border); position:relative; overflow:hidden; cursor:pointer; box-shadow:var(--shadow2); transition:transform 0.15s cubic-bezier(0.4,0,0.2,1), box-shadow 0.15s; } 
@@ -2825,7 +2837,7 @@ function getSortedDebtProfiles(profiles) {
     return res;
 }
 
-// ── SEASONAL DECORATIONS (MYANMAR 12 MONTHS HOLIDAYS) ──
+// ── SEASONAL DECORATIONS (MYANMAR 12 MONTHS + INTERNATIONAL) ──
 function updateSeasonalDecorations() {
     const hero = document.querySelector('.hero');
     if (!hero) return;
@@ -2833,254 +2845,638 @@ function updateSeasonalDecorations() {
     const existingDecor = document.getElementById('hero-decor-layer');
     if (existingDecor) existingDecor.remove();
 
+    // Reset hero gradient to default first
+    document.documentElement.style.setProperty('--hero-bg', 'linear-gradient(135deg,#3B5BDB 0%,#7048E8 60%,#9B59B6 100%)');
+
     const today = new Date();
     const yr = today.getFullYear();
+    const mon = today.getMonth() + 1;
+    const day = today.getDate();
 
-    // မြန်မာနိုင်ငံ ၁၂ လ ရာသီပွဲတော်များ (month, day)
+    // ══════════════════════════════════════════════════════
+    // Chinese New Year approximate dates (lunar ~late Jan/Feb)
+    const chineseNYDates = {
+        2024: { month: 2, date: 10 }, 2025: { month: 1, date: 29 },
+        2026: { month: 2, date: 17 }, 2027: { month: 2, date: 6  },
+        2028: { month: 1, date: 26 }, 2029: { month: 2, date: 13 },
+        2030: { month: 2, date: 3  }
+    };
+    // Eid al-Fitr approximate (varies yearly)
+    const eidFitrDates = {
+        2024: { month: 4, date: 10 }, 2025: { month: 3, date: 31 },
+        2026: { month: 3, date: 20 }, 2027: { month: 3, date: 9  },
+        2028: { month: 2, date: 26 }, 2029: { month: 2, date: 14 }
+    };
+    // Deepavali (Diwali) approximate
+    const deepavaliDates = {
+        2024: { month: 11, date: 1  }, 2025: { month: 10, date: 20 },
+        2026: { month: 11, date: 8  }, 2027: { month: 10, date: 29 },
+        2028: { month: 10, date: 17 }
+    };
+
+    // ════ ALL HOLIDAYS LIST ════
     const holidays = [
-        // ဇန်နဝါရီ - နှစ်သစ်ကူး / ကရင်နှစ်သစ်
-        { id: 'newyear',       month: 1,  date: 1  },   // ဇန်နဝါရီ ၁ - နှစ်သစ်ကူး
-        { id: 'karen_newyear', month: 1,  date: 14 },   // ဇန်နဝါရီ ၁၄ - ကရင်နှစ်သစ်ကူး
-        // ဖေဖော်ဝါရီ - Union Day
-        { id: 'union_day',     month: 2,  date: 12 },   // ဖေဖော်ဝါရီ ၁၂ - ပြည်ထောင်စုနေ့
-        // မတ် - တပေါင်းပွဲတော်
-        { id: 'tabaung',       month: 3,  date: 6  },   // မတ် - တပေါင်းမြဝါပွဲ
-        // ဧပြီ - သင်္ကြန်
-        { id: 'thingyan',      month: 4,  date: 14 },   // ဧပြီ ၁၃-၁၆ - သင်္ကြန်
-        // မေ - မြန်မာနှစ်သစ် / Workers' Day
-        { id: 'myanmar_newyear', month: 4, date: 17 },  // ဧပြီ ၁၇ - မြန်မာနှစ်သစ်
-        { id: 'workers_day',   month: 5,  date: 1  },   // မေ ၁ - အလုပ်သမားနေ့
-        // ဇွန် - Martyrs' Day
-        { id: 'martyrs_day',   month: 7,  date: 19 },   // ဇူလိုင် ၁၉ - အာဇာနည်နေ့
-        // ဩဂုတ် - သာသနာနေ့
-        { id: 'dhamma_day',    month: 8,  date: 1  },   // ဩဂုတ် - ဝါဆိုပွဲ
-        // စက်တင်ဘာ - တပသေ့ (ဝါဆွတ်)
-        { id: 'waso_end',      month: 9,  date: 15 },   // စက်တင်ဘာ - ဝါကွတ်ပွဲ
-        // အောက်တိုဘာ - သီတင်းကျွတ်
-        { id: 'thadingyut',    month: 10, date: 17 },   // အောက်တိုဘာ - သီတင်းကျွတ်ပွဲ
-        // နိုဝင်ဘာ - တန်ဆောင်တိုင်
-        { id: 'tazaungdaing',  month: 11, date: 15 },   // နိုဝင်ဘာ - တန်ဆောင်တိုင်ပွဲ
-        // ဒီဇင်ဘာ - အမျိုးသားနေ့
-        { id: 'national_day',  month: 12, date: 10 },   // ဒီဇင်ဘာ - အမျိုးသားနေ့
-        { id: 'christmas',     month: 12, date: 25 },   // ဒီဇင်ဘာ ၂၅ - ခရစ္စမတ်နေ့
+        // ── ဇန်နဝါရီ (JANUARY) ──
+        { id: 'newyear',         month: 1,  date: 1                          }, // International New Year
+        { id: 'karen_newyear',   month: 1,  date: 14                         }, // ကရင်နှစ်သစ်
+        // ── ဖေဖော်ဝါရီ (FEBRUARY) ──
+        { id: 'union_day',       month: 2,  date: 12                         }, // ပြည်ထောင်စုနေ့
+        { id: 'valentines',      month: 2,  date: 14                         }, // Valentine's Day
+        // ── မတ် (MARCH) ──
+        { id: 'tabaung',         month: 3,  date: 6                          }, // တပေါင်းပွဲ
+        // ── ဧပြီ (APRIL) ──
+        { id: 'thingyan',        month: 4,  date: 14                         }, // သင်္ကြန် (Apr 13–16)
+        { id: 'myanmar_newyear', month: 4,  date: 17                         }, // မြန်မာနှစ်သစ်
+        // ── မေ (MAY) ──
+        { id: 'workers_day',     month: 5,  date: 1                          }, // အလုပ်သမားနေ့
+        { id: 'kasone',          month: 5,  date: 15                         }, // ကဆုန်ညောင်ရေသောက် (approx)
+        // ── ဇွန် (JUNE) ──
+        { id: 'waso_begin',      month: 7,  date: 10                         }, // ဝါဆိုပွဲ (approx)
+        // ── ဇူလိုင် (JULY) ──
+        { id: 'martyrs_day',     month: 7,  date: 19                         }, // အာဇာနည်နေ့
+        // ── ဩဂုတ် (AUGUST) ──
+        { id: 'dhamma_day',      month: 8,  date: 1                          }, // ဓမ္မပူဇာနေ့
+        // ── စက်တင်ဘာ (SEPTEMBER) ──
+        { id: 'waso_end',        month: 9,  date: 15                         }, // ဝါကြွတ်
+        // ── အောက်တိုဘာ (OCTOBER) ──
+        { id: 'thadingyut',      month: 10, date: 17                         }, // သီတင်းကျွတ်
+        { id: 'halloween',       month: 10, date: 31                         }, // Halloween
+        // ── နိုဝင်ဘာ (NOVEMBER) ──
+        { id: 'tazaungdaing',    month: 11, date: 15                         }, // တန်ဆောင်တိုင်
+        { id: 'national_day',    month: 12, date: 10                         }, // အမျိုးသားနေ့
+        // ── ဒီဇင်ဘာ (DECEMBER) ──
+        { id: 'christmas',       month: 12, date: 25                         }, // ခရစ္စမတ်
+        { id: 'new_year_eve',    month: 12, date: 31                         }, // နှစ်ကုန်ညပွဲ
     ];
 
-    let activeHoliday = null;
+    // Add dynamic lunar holidays
+    if (chineseNYDates[yr]) holidays.push({ id: 'chinese_ny', month: chineseNYDates[yr].month, date: chineseNYDates[yr].date });
+    if (eidFitrDates[yr])   holidays.push({ id: 'eid_fitr',   month: eidFitrDates[yr].month,   date: eidFitrDates[yr].date   });
+    if (deepavaliDates[yr]) holidays.push({ id: 'diwali',     month: deepavaliDates[yr].month,  date: deepavaliDates[yr].date });
 
+    let activeHoliday = null;
     for (let h of holidays) {
         const targetDate = new Date(yr, h.month - 1, h.date);
         const diffDays = Math.round((today.getTime() - targetDate.getTime()) / 86400000);
-        if (diffDays >= -3 && diffDays <= 3) {
-            activeHoliday = h.id;
-            break;
-        }
+        if (diffDays >= -3 && diffDays <= 3) { activeHoliday = h.id; break; }
     }
 
     if (!activeHoliday) return;
+
+    // ════ HERO GRADIENT THEMES PER HOLIDAY ════
+    const heroGradients = {
+        'thingyan':        'linear-gradient(135deg, #1a6b9a 0%, #0d9e6c 50%, #1a8a7a 100%)',
+        'myanmar_newyear': 'linear-gradient(135deg, #D4790A 0%, #E8940A 50%, #C85E00 100%)',
+        'newyear':         'linear-gradient(135deg, #1a1a3e 0%, #2d1b6e 50%, #4a0080 100%)',
+        'new_year_eve':    'linear-gradient(135deg, #0a0a2e 0%, #1a0050 50%, #2d0060 100%)',
+        'karen_newyear':   'linear-gradient(135deg, #c0392b 0%, #e74c3c 50%, #8e44ad 100%)',
+        'union_day':       'linear-gradient(135deg, #2c5f2e 0%, #1a6b2a 50%, #c0392b 100%)',
+        'valentines':      'linear-gradient(135deg, #c0392b 0%, #e91e63 50%, #ad1457 100%)',
+        'tabaung':         'linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #A0522D 100%)',
+        'workers_day':     'linear-gradient(135deg, #b71c1c 0%, #c62828 50%, #1565c0 100%)',
+        'kasone':          'linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #388e3c 100%)',
+        'waso_begin':      'linear-gradient(135deg, #4a148c 0%, #6a1b9a 50%, #7b1fa2 100%)',
+        'martyrs_day':     'linear-gradient(135deg, #1a1a2e 0%, #3d1a1a 50%, #5d2222 100%)',
+        'dhamma_day':      'linear-gradient(135deg, #4a148c 0%, #880e4f 50%, #bf360c 100%)',
+        'waso_end':        'linear-gradient(135deg, #e65100 0%, #bf360c 50%, #4e342e 100%)',
+        'thadingyut':      'linear-gradient(135deg, #f57f17 0%, #e65100 50%, #bf360c 100%)',
+        'tazaungdaing':    'linear-gradient(135deg, #e65100 0%, #6a1b9a 50%, #880e4f 100%)',
+        'national_day':    'linear-gradient(135deg, #1a237e 0%, #283593 50%, #c62828 100%)',
+        'christmas':       'linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #b71c1c 100%)',
+        'halloween':       'linear-gradient(135deg, #4a0000 0%, #7f3f00 50%, #1a0030 100%)',
+        'chinese_ny':      'linear-gradient(135deg, #b71c1c 0%, #c62828 50%, #f9a825 100%)',
+        'eid_fitr':        'linear-gradient(135deg, #1a3c2e 0%, #1b5e20 50%, #004d40 100%)',
+        'diwali':          'linear-gradient(135deg, #e65100 0%, #f57f17 50%, #6a1b9a 100%)',
+    };
+
+    if (heroGradients[activeHoliday]) {
+        document.documentElement.style.setProperty('--hero-bg', heroGradients[activeHoliday]);
+    }
 
     const decorContainer = document.createElement('div');
     decorContainer.id = 'hero-decor-layer';
     decorContainer.className = 'hero-decor';
 
-    // ── Helper: convert x/y 'auto' to right/bottom edge ──
-    const posStyle = (x, y) => {
-        const h = (x === 'auto') ? 'right:-5px' : `left:${x}`;
-        const v = (y === 'auto') ? 'bottom:-5px' : `top:${y}`;
-        return `${v};${h}`;
-    };
+    // ═══════════════ SVG HELPERS ═══════════════
 
-    // ပိတောက်ပန်း SVG (မြန်မာနိုင်ငံအမျိုးသားပန်း)
-    const padaukSvg = (x, y, size, rot, opacity, spd) => `
-        <div class="decor-item ${spd}" style="position:absolute;${posStyle(x,y)};opacity:${opacity};transform:rotate(${rot}deg);pointer-events:none;">
-            <svg width="${size}" height="${size}" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+    // ██ ပိတောက်ပန်း (Padauk) - မြန်မာအမျိုးသားပန်း
+    const padaukSvg = (left, top, size, rot, opacity, extraStyle='') => {
+        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
+        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
+        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};transform:rotate(${rot}deg);pointer-events:none;${extraStyle}">
+            <svg width="${size}" height="${size}" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
                 <ellipse cx="30" cy="18" rx="7" ry="14" fill="#FFB347" transform="rotate(0 30 30)"/>
                 <ellipse cx="30" cy="18" rx="7" ry="14" fill="#FFA020" transform="rotate(72 30 30)"/>
                 <ellipse cx="30" cy="18" rx="7" ry="14" fill="#FFB347" transform="rotate(144 30 30)"/>
                 <ellipse cx="30" cy="18" rx="7" ry="14" fill="#FF8C00" transform="rotate(216 30 30)"/>
                 <ellipse cx="30" cy="18" rx="7" ry="14" fill="#FFCA28" transform="rotate(288 30 30)"/>
                 <circle cx="30" cy="30" r="6" fill="#FFE066"/>
-                <circle cx="30" cy="30" r="3" fill="#FFA500"/>
+                <circle cx="30" cy="30" r="3.5" fill="#FF9800"/>
+                <circle cx="30" cy="30" r="1.5" fill="#fff"/>
+            </svg>
+        </div>`;
+    };
+
+    // ██ ပိတောက်ပန်းကြွေ (Falling Petal)
+    const fallingPadauk = (left, delay, size, dur) => `
+        <div style="position:absolute;left:${left};top:-${size}px;pointer-events:none;animation:petalFall ${dur}s ${delay}s linear infinite;opacity:0.7;">
+            <svg width="${size}" height="${size}" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="15" cy="9" rx="4" ry="8" fill="#FFB347" transform="rotate(0 15 15)"/>
+                <ellipse cx="15" cy="9" rx="4" ry="8" fill="#FFA020" transform="rotate(72 15 15)"/>
+                <ellipse cx="15" cy="9" rx="4" ry="8" fill="#FFCA28" transform="rotate(144 15 15)"/>
+                <ellipse cx="15" cy="9" rx="4" ry="8" fill="#FF8C00" transform="rotate(216 15 15)"/>
+                <ellipse cx="15" cy="9" rx="4" ry="8" fill="#FFD600" transform="rotate(288 15 15)"/>
+                <circle cx="15" cy="15" r="3.5" fill="#FFE066"/>
             </svg>
         </div>`;
 
-    // ရေဖျန်း SVG (သင်္ကြန်)
-    const waterDropSvg = (x, y, size, opacity) => `
-        <div class="decor-item fast" style="position:absolute;${posStyle(x,y)};opacity:${opacity};pointer-events:none;">
-            <svg width="${size}" height="${size}" viewBox="0 0 40 50" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 5 Q30 20 30 30 A10 10 0 0 1 10 30 Q10 20 20 5Z" fill="#7EC8E3" opacity="0.85"/>
-                <path d="M20 12 Q26 22 26 28 A6 6 0 0 1 14 28 Q14 22 20 12Z" fill="#B3E5FC" opacity="0.6"/>
+    // ██ ရေဖျန်းပုံ (Water Drop) - သင်္ကြန်
+    const waterSvg = (left, top, size, opacity, extraStyle='') => {
+        const pos = left === 'auto' ? 'right:4px' : `left:${left}`;
+        const vpos = top === 'auto' ? 'bottom:4px' : `top:${top}`;
+        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;${extraStyle}">
+            <svg width="${size}" height="${size}" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 4 Q32 20 32 32 A12 12 0 0 1 8 32 Q8 20 20 4Z" fill="#5BC8EF"/>
+                <path d="M20 12 Q27 23 27 30 A7 7 0 0 1 13 30 Q13 23 20 12Z" fill="#B3E5FC" opacity="0.7"/>
+                <ellipse cx="16" cy="26" rx="3" ry="4.5" fill="#fff" opacity="0.3" transform="rotate(-20 16 26)"/>
+            </svg>
+        </div>`;
+    };
+
+    // ██ ရေဖျန်းကျဆင်း (Falling Water)
+    const fallingWater = (left, delay, size, dur) => `
+        <div style="position:absolute;left:${left};top:-${size}px;pointer-events:none;animation:waterFall ${dur}s ${delay}s linear infinite;opacity:0;">
+            <svg width="${size}" height="${size}" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2 Q20 14 20 20 A8 8 0 0 1 4 20 Q4 14 12 2Z" fill="#4FC3F7"/>
+                <path d="M12 7 Q17 16 17 20 A5 5 0 0 1 7 20 Q7 16 12 7Z" fill="#B3E5FC" opacity="0.6"/>
             </svg>
         </div>`;
 
-    // မဲ့ပင်မီး / ဆီမီး SVG (သီတင်းကျွတ်)
-    const lanternSvg = (x, y, size, opacity) => `
-        <div class="decor-item slow" style="position:absolute;${posStyle(x,y)};opacity:${opacity};pointer-events:none;">
-            <svg width="${size}" height="${size}" viewBox="0 0 50 70" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect x="10" y="15" width="30" height="40" rx="8" fill="#E53935" opacity="0.9"/>
-                <rect x="14" y="19" width="22" height="32" rx="5" fill="#FFEE58" opacity="0.7"/>
-                <path d="M25 8 Q22 12 22 15 H28 Q28 12 25 8Z" fill="#FFB300"/>
-                <circle cx="25" cy="8" r="3" fill="#FFF176"/>
-                <rect x="10" y="15" width="30" height="5" rx="3" fill="#B71C1C"/>
-                <rect x="10" y="50" width="30" height="5" rx="3" fill="#B71C1C"/>
-                <line x1="25" y1="8" x2="25" y2="2" stroke="#FFB300" stroke-width="2"/>
-                <circle cx="25" cy="2" r="2" fill="#FFB300"/>
+    // ██ ဆီမီး/မီးဖို (Lantern SVG) - သီတင်းကျွတ်/တန်ဆောင်တိုင်
+    const lanternSvg = (left, top, size, opacity, extraStyle='') => {
+        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
+        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
+        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:lanternFloat 3s ease-in-out infinite;${extraStyle}">
+            <svg width="${size}" height="${Math.round(size*1.4)}" viewBox="0 0 50 70" xmlns="http://www.w3.org/2000/svg">
+                <line x1="25" y1="0" x2="25" y2="8" stroke="#FFD54F" stroke-width="2"/>
+                <ellipse cx="25" cy="4" rx="5" ry="3" fill="#FF8F00"/>
+                <rect x="8" y="12" width="34" height="44" rx="10" fill="#E53935"/>
+                <rect x="13" y="16" width="24" height="36" rx="7" fill="#FFEE58" opacity="0.85"/>
+                <rect x="8" y="12" width="34" height="7" rx="4" fill="#B71C1C"/>
+                <rect x="8" y="49" width="34" height="7" rx="4" fill="#B71C1C"/>
+                <ellipse cx="25" cy="34" rx="8" ry="10" fill="#FFB300" opacity="0.4"/>
+                <text x="25" y="39" text-anchor="middle" font-size="13" fill="#c62828" font-family="serif" font-weight="bold">福</text>
+                <rect x="4" y="8" width="8" height="3" rx="1.5" fill="#FF8F00"/>
+                <rect x="38" y="8" width="8" height="3" rx="1.5" fill="#FF8F00"/>
+                <line x1="8" y1="59" x2="25" y2="66" stroke="#FFD54F" stroke-width="1.5"/>
+                <line x1="42" y1="59" x2="25" y2="66" stroke="#FFD54F" stroke-width="1.5"/>
+                <ellipse cx="25" cy="67" rx="4" ry="2" fill="#FF8F00"/>
+            </svg>
+        </div>`;
+    };
+
+    // ██ မြန်မာမီးပုံး (Hot air balloon / Fire lantern) - တန်ဆောင်တိုင်
+    const miBuSvg = (left, top, size, opacity, extraStyle='') => {
+        const pos = left === 'auto' ? 'right:5px' : `left:${left}`;
+        const vpos = top === 'auto' ? 'bottom:5px' : `top:${top}`;
+        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:lanternFloat 4s ease-in-out infinite alternate;${extraStyle}">
+            <svg width="${size}" height="${Math.round(size*1.2)}" viewBox="0 0 60 72" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="30" cy="28" rx="22" ry="26" fill="#F57F17"/>
+                <ellipse cx="30" cy="28" rx="22" ry="26" fill="url(#mibug)" opacity="0.9"/>
+                <defs><radialGradient id="mibug" cx="40%" cy="35%"><stop offset="0%" stop-color="#FFF176"/><stop offset="60%" stop-color="#FF8F00"/><stop offset="100%" stop-color="#E65100"/></radialGradient></defs>
+                <ellipse cx="30" cy="28" rx="10" ry="14" fill="#FFEE58" opacity="0.5"/>
+                <path d="M18 52 Q30 58 42 52 L38 62 Q30 65 22 62 Z" fill="#5D4037"/>
+                <path d="M22 62 Q30 68 38 62" fill="none" stroke="#FF8F00" stroke-width="2"/>
+                <circle cx="30" cy="60" r="4" fill="#FF6D00" opacity="0.9"/>
+                <circle cx="30" cy="60" r="2" fill="#FFF176"/>
+            </svg>
+        </div>`;
+    };
+
+    // ██ တောင်ဂြိုဟ် / ကြယ်မီး (Star/Firework) - တန်ဆောင်တိုင်
+    const fireworkSvg = (left, top, size, opacity, extraStyle='') => {
+        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
+        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
+        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:sparkle 2s ease-in-out infinite;${extraStyle}">
+            <svg width="${size}" height="${size}" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="30" cy="30" r="5.5" fill="#FFE066"/>
+                <line x1="30" y1="4" x2="30" y2="17" stroke="#FFB300" stroke-width="3" stroke-linecap="round"/>
+                <line x1="30" y1="43" x2="30" y2="56" stroke="#FFB300" stroke-width="3" stroke-linecap="round"/>
+                <line x1="4" y1="30" x2="17" y2="30" stroke="#FF6B35" stroke-width="3" stroke-linecap="round"/>
+                <line x1="43" y1="30" x2="56" y2="30" stroke="#FF6B35" stroke-width="3" stroke-linecap="round"/>
+                <line x1="11" y1="11" x2="20" y2="20" stroke="#F7DC6F" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="40" y1="40" x2="49" y2="49" stroke="#F7DC6F" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="49" y1="11" x2="40" y2="20" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="20" y1="40" x2="11" y2="49" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="30" cy="4" r="2.5" fill="#FFE066"/>
+                <circle cx="30" cy="56" r="2.5" fill="#FFB300"/>
+                <circle cx="4" cy="30" r="2.5" fill="#FF6B35"/>
+                <circle cx="56" cy="30" r="2.5" fill="#FF6B35"/>
+            </svg>
+        </div>`;
+    };
+
+    // ██ ဒဟဲဒဲသိုး (Chinese Coin)
+    const chineseCoinSvg = (left, top, size, opacity, extraStyle='') => {
+        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
+        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
+        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:floatDecor 3s ease-in-out infinite alternate;${extraStyle}">
+            <svg width="${size}" height="${size}" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="25" cy="25" r="23" fill="#F9A825" stroke="#E65100" stroke-width="2"/>
+                <circle cx="25" cy="25" r="17" fill="#FF8F00"/>
+                <rect x="20" y="20" width="10" height="10" fill="#F9A825" stroke="#E65100" stroke-width="1.5"/>
+                <text x="25" y="28" text-anchor="middle" font-size="7" fill="#b71c1c" font-weight="bold" font-family="serif">福</text>
+            </svg>
+        </div>`;
+    };
+
+    // ██ ဆင် SVG (Elephant - Karen/Myanmar)
+    const elephantSvg = (left, top, size, opacity, extraStyle='') => {
+        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
+        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
+        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:floatDecor 4s ease-in-out infinite alternate;${extraStyle}">
+            <svg width="${size}" height="${Math.round(size*0.85)}" viewBox="0 0 80 68" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="40" cy="40" rx="28" ry="20" fill="#8D6E63"/>
+                <ellipse cx="62" cy="30" rx="16" ry="18" fill="#8D6E63"/>
+                <ellipse cx="62" cy="26" rx="14" ry="12" fill="#A1887F"/>
+                <circle cx="70" cy="24" r="5" fill="#8D6E63"/>
+                <circle cx="72" cy="22" r="2.5" fill="#fff"/>
+                <circle cx="73" cy="22" r="1.2" fill="#212121"/>
+                <path d="M56 40 Q48 55 52 62" stroke="#795548" stroke-width="4" fill="none" stroke-linecap="round"/>
+                <rect x="20" y="52" width="8" height="14" rx="4" fill="#795548"/>
+                <rect x="32" y="54" width="8" height="12" rx="4" fill="#795548"/>
+                <rect x="44" y="52" width="8" height="14" rx="4" fill="#795548"/>
+                <rect x="56" y="54" width="8" height="12" rx="4" fill="#795548"/>
+                <ellipse cx="40" cy="26" rx="8" ry="4" fill="#D7CCC8" opacity="0.5"/>
+            </svg>
+        </div>`;
+    };
+
+    // ██ ဗုဒ္ဓဆောင်း (Pagoda silhouette)
+    const pagodaSvg = (left, top, size, opacity, extraStyle='') => {
+        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
+        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
+        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:floatDecor 4s ease-in-out infinite alternate;${extraStyle}">
+            <svg width="${size}" height="${Math.round(size*1.5)}" viewBox="0 0 50 75" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="25,2 28,14 22,14" fill="#FFD54F"/>
+                <polygon points="25,14 31,22 19,22" fill="#FFB300"/>
+                <polygon points="25,22 33,32 17,32" fill="#FFD54F"/>
+                <rect x="16" y="32" width="18" height="8" rx="2" fill="#FFB300"/>
+                <rect x="13" y="40" width="24" height="6" rx="2" fill="#FFD54F"/>
+                <rect x="10" y="46" width="30" height="6" rx="2" fill="#FFB300"/>
+                <rect x="18" y="52" width="14" height="20" rx="2" fill="#FFD54F"/>
+                <rect x="22" y="72" width="6" height="3" fill="#FF8F00"/>
+                <circle cx="25" cy="6" r="3" fill="#FFF176"/>
+            </svg>
+        </div>`;
+    };
+
+    // ██ ကြယ်ပွင့် (Snowflake)
+    const snowflakeSvg = (left, delay, size) => `
+        <div style="position:absolute;left:${left};top:-${size}px;pointer-events:none;animation:snowFall ${3+delay}s ${delay}s linear infinite;opacity:0;">
+            <svg width="${size}" height="${size}" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
+                <line x1="15" y1="2" x2="15" y2="28" stroke="#E3F2FD" stroke-width="2" stroke-linecap="round"/>
+                <line x1="2" y1="15" x2="28" y2="15" stroke="#E3F2FD" stroke-width="2" stroke-linecap="round"/>
+                <line x1="6" y1="6" x2="24" y2="24" stroke="#BBDEFB" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="24" y1="6" x2="6" y2="24" stroke="#BBDEFB" stroke-width="1.5" stroke-linecap="round"/>
+                <circle cx="15" cy="15" r="2.5" fill="#90CAF9"/>
+                <circle cx="15" cy="4" r="1.5" fill="#E3F2FD"/>
+                <circle cx="15" cy="26" r="1.5" fill="#E3F2FD"/>
+                <circle cx="4" cy="15" r="1.5" fill="#E3F2FD"/>
+                <circle cx="26" cy="15" r="1.5" fill="#E3F2FD"/>
             </svg>
         </div>`;
 
-    // မီးပုံး / ကြယ်မီး SVG (တန်ဆောင်တိုင်)
-    const fireworkSvg = (x, y, size, opacity) => `
-        <div class="decor-item" style="position:absolute;${posStyle(x,y)};opacity:${opacity};animation:floatDecor 2.5s ease-in-out infinite alternate;pointer-events:none;">
-            <svg width="${size}" height="${size}" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="30" cy="30" r="5" fill="#FFE066"/>
-                <line x1="30" y1="5" x2="30" y2="18" stroke="#FFB300" stroke-width="3" stroke-linecap="round"/>
-                <line x1="30" y1="42" x2="30" y2="55" stroke="#FFB300" stroke-width="3" stroke-linecap="round"/>
-                <line x1="5" y1="30" x2="18" y2="30" stroke="#FF6B35" stroke-width="3" stroke-linecap="round"/>
-                <line x1="42" y1="30" x2="55" y2="30" stroke="#FF6B35" stroke-width="3" stroke-linecap="round"/>
-                <line x1="12" y1="12" x2="21" y2="21" stroke="#F7DC6F" stroke-width="2.5" stroke-linecap="round"/>
-                <line x1="39" y1="39" x2="48" y2="48" stroke="#F7DC6F" stroke-width="2.5" stroke-linecap="round"/>
-                <line x1="48" y1="12" x2="39" y2="21" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/>
-                <line x1="21" y1="39" x2="12" y2="48" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/>
+    // ██ ကြိမ်သစ် / ဖောင်ပိုး (Chinese Dragon element)
+    const dragonCloudSvg = (left, top, size, opacity, extraStyle='') => {
+        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
+        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
+        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:floatDecor 3.5s ease-in-out infinite alternate;${extraStyle}">
+            <svg width="${size}" height="${Math.round(size*0.6)}" viewBox="0 0 80 48" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5 30 Q15 10 25 20 Q35 8 45 18 Q55 5 65 16 Q75 10 78 25 Q75 38 60 35 Q50 45 40 38 Q30 45 20 38 Q8 42 5 30Z" fill="#E53935" opacity="0.8"/>
+                <circle cx="72" cy="22" r="6" fill="#FF8F00"/>
+                <circle cx="74" cy="20" r="2.5" fill="#fff"/>
+                <circle cx="75" cy="19.5" r="1.2" fill="#212121"/>
+                <path d="M76 28 Q80 32 78 36" stroke="#FF8F00" stroke-width="2" fill="none" stroke-linecap="round"/>
+                <ellipse cx="20" cy="28" rx="5" ry="3" fill="#FFCDD2" opacity="0.6"/>
+                <ellipse cx="45" cy="22" rx="4" ry="2.5" fill="#FFCDD2" opacity="0.6"/>
             </svg>
         </div>`;
+    };
 
+    // ██ ဆီမီး/မုန့် (Diwali diya lamp)
+    const diyaSvg = (left, top, size, opacity, extraStyle='') => {
+        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
+        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
+        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:floatDecor 3s ease-in-out infinite alternate;${extraStyle}">
+            <svg width="${size}" height="${Math.round(size*1.1)}" viewBox="0 0 50 55" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 35 Q25 20 40 35 Q42 42 25 44 Q8 42 10 35Z" fill="#D84315"/>
+                <path d="M14 35 Q25 24 36 35 Q37 40 25 42 Q13 40 14 35Z" fill="#FF7043"/>
+                <ellipse cx="25" cy="32" rx="8" ry="4" fill="#FF8A65"/>
+                <path d="M25 32 Q22 22 25 14 Q28 22 25 32Z" fill="#FF8F00" opacity="0.9"/>
+                <ellipse cx="25" cy="15" rx="3.5" ry="5" fill="#FFEE58" opacity="0.95"/>
+                <ellipse cx="25" cy="13" rx="2" ry="3.5" fill="#fff" opacity="0.7"/>
+                <circle cx="25" cy="32" r="3" fill="#FFD54F"/>
+            </svg>
+        </div>`;
+    };
+
+    // ██ ဆင်ပုစ (Spider/Halloween)
+    const spiderwebSvg = (left, top, size, opacity, extraStyle='') => {
+        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
+        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
+        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:floatDecor 3s ease-in-out infinite alternate;${extraStyle}">
+            <svg width="${size}" height="${size}" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+                <line x1="30" y1="4" x2="30" y2="56" stroke="#fff" stroke-width="1.2" opacity="0.7"/>
+                <line x1="4" y1="30" x2="56" y2="30" stroke="#fff" stroke-width="1.2" opacity="0.7"/>
+                <line x1="11" y1="11" x2="49" y2="49" stroke="#fff" stroke-width="1.2" opacity="0.7"/>
+                <line x1="49" y1="11" x2="11" y2="49" stroke="#fff" stroke-width="1.2" opacity="0.7"/>
+                <circle cx="30" cy="30" r="5" stroke="#fff" stroke-width="1" fill="none" opacity="0.6"/>
+                <circle cx="30" cy="30" r="12" stroke="#fff" stroke-width="1" fill="none" opacity="0.5"/>
+                <circle cx="30" cy="30" r="20" stroke="#fff" stroke-width="1" fill="none" opacity="0.4"/>
+                <ellipse cx="30" cy="18" rx="6" ry="4" fill="#212121"/>
+                <circle cx="28" cy="17" r="1.5" fill="#ff0000"/>
+                <circle cx="32" cy="17" r="1.5" fill="#ff0000"/>
+                <line x1="24" y1="20" x2="18" y2="28" stroke="#212121" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="24" y1="20" x2="16" y2="22" stroke="#212121" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="36" y1="20" x2="42" y2="28" stroke="#212121" stroke-width="1.5" stroke-linecap="round"/>
+                <line x1="36" y1="20" x2="44" y2="22" stroke="#212121" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </div>`;
+    };
+
+    // ██ လ (Crescent Moon) - ဝါဆို/ဝါကြွတ်/ရောဇာ
+    const moonSvg = (left, top, size, opacity, col='#FFE066', extraStyle='') => {
+        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
+        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
+        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:floatDecor 5s ease-in-out infinite alternate;${extraStyle}">
+            <svg width="${size}" height="${size}" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
+                <path d="M30 5 A18 18 0 1 0 30 45 A12 12 0 1 1 30 5Z" fill="${col}"/>
+            </svg>
+        </div>`;
+    };
+
+    // ══════════════════════════════════════════
+    // BUILD HTML FOR EACH HOLIDAY
     let html = '';
 
+    // ══ THINGYAN (သင်္ကြန်) ══ Padauk + water
     if (activeHoliday === 'thingyan') {
-        // သင်္ကြန် - ပိတောက်ပန်းများနှင့် ရေဖျန်းများ (ဧပြီ/တန်ခူးလ)
         html = `
-            ${padaukSvg('-8px', '-12px', 62, -25, 0.7, 'slow')}
-            ${padaukSvg('auto', '-8px', 50, 20, 0.6, 'fast')}
-            ${padaukSvg('25%', 'auto', 44, 10, 0.45, '')}
-            ${waterDropSvg('auto', '10px', 36, 0.6)}
-            ${waterDropSvg('18%', 'auto', 28, 0.45)}
-            ${waterDropSvg('55%', '-5px', 22, 0.35)}
-            ${padaukSvg('60%', 'auto', 32, -15, 0.35, 'slow')}
-            <div class="decor-item fast" style="position:absolute;bottom:8px;right:18px;font-size:28px;opacity:0.5;">💦</div>
-            <div class="decor-item slow" style="position:absolute;top:10px;left:40%;font-size:18px;opacity:0.3;">💧</div>
+            ${padaukSvg('-10px', '-15px', 68, -22, 0.75)}
+            ${padaukSvg('auto', '-10px', 54, 18, 0.65, 'animation:floatDecor 4s ease-in-out infinite alternate;')}
+            ${padaukSvg('28%', 'auto', 46, 8, 0.5, 'animation:floatDecor 3s ease-in-out infinite alternate;')}
+            ${padaukSvg('62%', 'auto', 34, -12, 0.4, 'animation:floatDecor 5s ease-in-out infinite alternate;')}
+            ${fallingPadauk('8%',  0,   18, 5.5)}
+            ${fallingPadauk('22%', 0.8, 14, 6.2)}
+            ${fallingPadauk('38%', 1.5, 16, 5.0)}
+            ${fallingPadauk('55%', 0.3, 12, 7.0)}
+            ${fallingPadauk('70%', 1.1, 15, 5.8)}
+            ${fallingPadauk('85%', 0.6, 13, 6.5)}
+            ${fallingWater('15%', 0.5, 20, 3.5)}
+            ${fallingWater('35%', 0.0, 16, 4.2)}
+            ${fallingWater('60%', 1.0, 18, 3.8)}
+            ${fallingWater('78%', 0.3, 14, 4.6)}
+            ${waterSvg('auto', '8px', 38, 0.65, 'animation:floatDecor 2.5s ease-in-out infinite alternate;')}
+            <div style="position:absolute;bottom:8px;right:20px;font-size:28px;opacity:0.55;animation:floatDecor 2s ease-in-out infinite alternate;">💦</div>
+            <div style="position:absolute;top:12px;left:42%;font-size:18px;opacity:0.35;animation:floatDecor 3s ease-in-out infinite alternate;">💧</div>
         `;
-    } else if (activeHoliday === 'myanmar_newyear') {
-        // မြန်မာနှစ်သစ် - ပိတောက်ပန်းသီး (တန်ခူးလ)
+    }
+    // ══ MYANMAR NEW YEAR (မြန်မာနှစ်သစ်) ══ Padauk-heavy
+    else if (activeHoliday === 'myanmar_newyear') {
         html = `
-            ${padaukSvg('-5px', '-15px', 70, -18, 0.8, '')}
-            ${padaukSvg('auto', '-10px', 55, 15, 0.65, 'slow')}
-            ${padaukSvg('38%', '-8px', 42, 5, 0.5, 'fast')}
-            ${padaukSvg('-10px', 'auto', 38, -30, 0.4, '')}
-            ${padaukSvg('auto', 'auto', 32, 22, 0.4, 'slow')}
-            <div class="decor-item" style="position:absolute;top:8px;left:62%;font-size:26px;opacity:0.45;">✨</div>
+            ${padaukSvg('-8px', '-18px', 74, -20, 0.82)}
+            ${padaukSvg('auto', '-12px', 58, 16, 0.68)}
+            ${padaukSvg('35%', '-10px', 46, 5, 0.55)}
+            ${padaukSvg('-12px', 'auto', 40, -28, 0.42)}
+            ${padaukSvg('auto', 'auto', 34, 24, 0.42)}
+            ${fallingPadauk('10%', 0,   16, 5.5)}
+            ${fallingPadauk('25%', 0.9, 14, 6.5)}
+            ${fallingPadauk('45%', 1.7, 18, 5.2)}
+            ${fallingPadauk('65%', 0.4, 13, 6.8)}
+            ${fallingPadauk('80%', 1.3, 15, 5.8)}
+            <div style="position:absolute;top:10px;left:60%;font-size:24px;opacity:0.5;animation:floatDecor 3s ease-in-out infinite alternate;">✨</div>
         `;
-    } else if (activeHoliday === 'newyear') {
-        // ဒေသတမ်းနှစ်သစ် (ဇန်နဝါရီ) - ဆင်ကူးပွဲ
+    }
+    // ══ INTERNATIONAL NEW YEAR (ဇန်နဝါရီ ၁) ══
+    else if (activeHoliday === 'newyear') {
         html = `
-            <div class="decor-item" style="position:absolute;top:-5px;left:8px;font-size:44px;opacity:0.6;">🎉</div>
-            <div class="decor-item fast" style="position:absolute;bottom:8px;right:8px;font-size:38px;opacity:0.55;">🎊</div>
-            <div class="decor-item slow" style="position:absolute;top:15px;right:28%;font-size:26px;opacity:0.4;">✨</div>
-            <div class="decor-item" style="position:absolute;bottom:12px;left:25%;font-size:22px;opacity:0.35;">🌟</div>
-            <div class="decor-item fast" style="position:absolute;top:5px;left:48%;font-size:20px;opacity:0.3;">🎆</div>
+            <div style="position:absolute;top:-5px;left:6px;font-size:46px;opacity:0.65;animation:floatDecor 3s ease-in-out infinite alternate;">🎉</div>
+            <div style="position:absolute;bottom:8px;right:8px;font-size:40px;opacity:0.6;animation:floatDecor 2.5s ease-in-out infinite alternate;">🎊</div>
+            <div style="position:absolute;top:14px;right:26%;font-size:28px;opacity:0.45;animation:sparkle 2s ease-in-out infinite;">✨</div>
+            <div style="position:absolute;bottom:14px;left:24%;font-size:24px;opacity:0.38;animation:sparkle 2.5s 0.5s ease-in-out infinite;">🌟</div>
+            <div style="position:absolute;top:5px;left:46%;font-size:22px;opacity:0.35;animation:sparkle 3s 1s ease-in-out infinite;">🎆</div>
+            ${fireworkSvg('auto', '-5px', 44, 0.5)}
+            ${fireworkSvg('32%', '-8px', 36, 0.4)}
         `;
-    } else if (activeHoliday === 'karen_newyear') {
-        // ကရင်နှစ်သစ် (ဇန်နဝါရီ ၁၄)
+    }
+    // ══ NEW YEAR EVE (ဒီဇင်ဘာ ၃၁) ══
+    else if (activeHoliday === 'new_year_eve') {
         html = `
-            <div class="decor-item slow" style="position:absolute;top:-8px;left:-5px;font-size:48px;opacity:0.55;">🌺</div>
-            <div class="decor-item" style="position:absolute;top:-5px;right:12px;font-size:38px;opacity:0.5;">🌸</div>
-            <div class="decor-item fast" style="position:absolute;bottom:6px;right:22%;font-size:26px;opacity:0.4;">✨</div>
-            <div class="decor-item slow" style="position:absolute;bottom:10px;left:15px;font-size:22px;opacity:0.38;">💛</div>
+            <div style="position:absolute;top:-5px;left:6px;font-size:44px;opacity:0.65;animation:floatDecor 2.5s ease-in-out infinite alternate;">🎆</div>
+            <div style="position:absolute;bottom:8px;right:10px;font-size:38px;opacity:0.6;animation:floatDecor 3s ease-in-out infinite alternate;">🥂</div>
+            <div style="position:absolute;top:14px;right:22%;font-size:26px;opacity:0.45;animation:sparkle 1.8s ease-in-out infinite;">✨</div>
+            <div style="position:absolute;bottom:12px;left:22%;font-size:22px;opacity:0.4;animation:sparkle 2.2s 0.4s ease-in-out infinite;">🎇</div>
+            ${fireworkSvg('-5px', '5px', 50, 0.55)}
+            ${fireworkSvg('auto', 'auto', 40, 0.45)}
         `;
-    } else if (activeHoliday === 'union_day') {
-        // ပြည်ထောင်စုနေ့ (ဖေဖော်ဝါရီ ၁၂)
+    }
+    // ══ KAREN NEW YEAR (ကရင်နှစ်သစ်) ══
+    else if (activeHoliday === 'karen_newyear') {
         html = `
-            <div class="decor-item" style="position:absolute;top:-5px;left:5px;font-size:44px;opacity:0.6;">🇲🇲</div>
-            <div class="decor-item slow" style="position:absolute;top:5px;right:10px;font-size:32px;opacity:0.5;">⭐</div>
-            <div class="decor-item fast" style="position:absolute;bottom:8px;right:20%;font-size:26px;opacity:0.4;">🕊️</div>
-            <div class="decor-item" style="position:absolute;bottom:12px;left:28%;font-size:22px;opacity:0.35;">🌿</div>
+            ${elephantSvg('-8px', 'auto', 72, 0.6)}
+            <div style="position:absolute;top:-8px;right:8px;font-size:42px;opacity:0.55;animation:floatDecor 3.5s ease-in-out infinite alternate;">🌺</div>
+            <div style="position:absolute;top:8px;left:42%;font-size:28px;opacity:0.45;animation:floatDecor 4s ease-in-out infinite alternate;">🌸</div>
+            <div style="position:absolute;bottom:8px;right:24%;font-size:24px;opacity:0.4;animation:sparkle 2.5s ease-in-out infinite;">✨</div>
+            <div style="position:absolute;bottom:12px;left:16px;font-size:22px;opacity:0.38;animation:floatDecor 3s ease-in-out infinite alternate;">💛</div>
         `;
-    } else if (activeHoliday === 'tabaung') {
-        // တပေါင်း / ကဆုန်ပွဲ (မတ်)
+    }
+    // ══ UNION DAY (ပြည်ထောင်စုနေ့) ══
+    else if (activeHoliday === 'union_day') {
         html = `
-            ${padaukSvg('-5px', '-10px', 58, -20, 0.65, 'slow')}
-            <div class="decor-item" style="position:absolute;top:5px;right:10px;font-size:36px;opacity:0.55;">🌕</div>
-            <div class="decor-item fast" style="position:absolute;bottom:8px;right:25%;font-size:24px;opacity:0.4;">✨</div>
-            ${padaukSvg('auto', 'auto', 38, 15, 0.42, '')}
-            <div class="decor-item slow" style="position:absolute;bottom:10px;left:15%;font-size:20px;opacity:0.35;">🌸</div>
+            <div style="position:absolute;top:-5px;left:5px;font-size:46px;opacity:0.65;animation:floatDecor 4s ease-in-out infinite alternate;">🇲🇲</div>
+            ${padaukSvg('36%', '-8px', 44, 10, 0.5)}
+            <div style="position:absolute;top:8px;right:10px;font-size:34px;opacity:0.5;animation:sparkle 3s ease-in-out infinite;">⭐</div>
+            <div style="position:absolute;bottom:8px;right:22%;font-size:26px;opacity:0.42;animation:floatDecor 3.5s ease-in-out infinite alternate;">🕊️</div>
+            <div style="position:absolute;bottom:12px;left:28%;font-size:22px;opacity:0.35;animation:floatDecor 4s ease-in-out infinite alternate;">🌿</div>
         `;
-    } else if (activeHoliday === 'workers_day') {
-        // အလုပ်သမားနေ့ (မေ ၁)
+    }
+    // ══ VALENTINES (နှလုံးသားနေ့) ══
+    else if (activeHoliday === 'valentines') {
         html = `
-            <div class="decor-item" style="position:absolute;top:-5px;left:8px;font-size:42px;opacity:0.55;">⚙️</div>
-            <div class="decor-item slow" style="position:absolute;top:5px;right:10px;font-size:36px;opacity:0.5;">🔧</div>
-            <div class="decor-item fast" style="position:absolute;bottom:8px;right:22%;font-size:26px;opacity:0.4;">💪</div>
-            <div class="decor-item" style="position:absolute;bottom:10px;left:30%;font-size:22px;opacity:0.35;">⭐</div>
+            <div style="position:absolute;top:-8px;left:5px;font-size:48px;opacity:0.65;animation:floatDecor 3.5s ease-in-out infinite alternate;">❤️</div>
+            <div style="position:absolute;top:-5px;right:8px;font-size:40px;opacity:0.6;animation:floatDecor 4s ease-in-out infinite alternate;">💕</div>
+            <div style="position:absolute;bottom:8px;left:22%;font-size:30px;opacity:0.5;animation:floatDecor 3s 0.5s ease-in-out infinite alternate;">💝</div>
+            <div style="position:absolute;top:10px;left:40%;font-size:24px;opacity:0.45;animation:sparkle 2s ease-in-out infinite;">💖</div>
+            <div style="position:absolute;bottom:10px;right:18%;font-size:22px;opacity:0.38;animation:floatDecor 4.5s ease-in-out infinite alternate;">🌹</div>
         `;
-    } else if (activeHoliday === 'martyrs_day') {
-        // အာဇာနည်နေ့ (ဇူလိုင် ၁၉)
+    }
+    // ══ TABAUNG (တပေါင်းပွဲ) ══
+    else if (activeHoliday === 'tabaung') {
         html = `
-            <div class="decor-item slow" style="position:absolute;top:-5px;left:8px;font-size:42px;opacity:0.55;">🕯️</div>
-            <div class="decor-item" style="position:absolute;top:5px;right:8px;font-size:36px;opacity:0.5;">🌹</div>
-            <div class="decor-item fast" style="position:absolute;bottom:8px;right:25%;font-size:22px;opacity:0.4;">🕊️</div>
-            <div class="decor-item slow" style="position:absolute;bottom:10px;left:25%;font-size:20px;opacity:0.35;">🌿</div>
+            ${padaukSvg('-5px', '-12px', 60, -18, 0.68)}
+            ${moonSvg('auto', '-5px', 52, 0.6, '#FFEE58')}
+            ${pagodaSvg('auto', 'auto', 44, 0.5)}
+            <div style="position:absolute;bottom:10px;right:28%;font-size:24px;opacity:0.42;animation:sparkle 2.5s ease-in-out infinite;">✨</div>
+            <div style="position:absolute;bottom:12px;left:16%;font-size:20px;opacity:0.38;animation:floatDecor 4s ease-in-out infinite alternate;">🌸</div>
         `;
-    } else if (activeHoliday === 'dhamma_day') {
-        // ဝါဆိုပွဲ / ကညင်ပင်မီးထွန်းပွဲ (ဩဂုတ်)
+    }
+    // ══ WORKERS DAY (အလုပ်သမားနေ့) ══
+    else if (activeHoliday === 'workers_day') {
         html = `
-            ${lanternSvg('8px', '-8px', 52, 0.65)}
-            <div class="decor-item" style="position:absolute;top:5px;right:12px;font-size:36px;opacity:0.55;">☸️</div>
-            ${lanternSvg('auto', 'auto', 40, 0.5)}
-            <div class="decor-item slow" style="position:absolute;bottom:8px;left:28%;font-size:22px;opacity:0.4;">🕯️</div>
+            <div style="position:absolute;top:-5px;left:8px;font-size:44px;opacity:0.58;animation:floatDecor 3.5s ease-in-out infinite alternate;">⚙️</div>
+            <div style="position:absolute;top:5px;right:10px;font-size:38px;opacity:0.52;animation:floatDecor 4s ease-in-out infinite alternate;">🔧</div>
+            <div style="position:absolute;bottom:8px;right:24%;font-size:28px;opacity:0.44;animation:floatDecor 3s ease-in-out infinite alternate;">💪</div>
+            <div style="position:absolute;bottom:12px;left:30%;font-size:24px;opacity:0.38;animation:sparkle 3s ease-in-out infinite;">⭐</div>
+            <div style="position:absolute;top:8px;left:44%;font-size:20px;opacity:0.35;animation:floatDecor 4.5s ease-in-out infinite alternate;">🏭</div>
         `;
-    } else if (activeHoliday === 'waso_end') {
-        // ဝါကွတ်ပွဲ (စက်တင်ဘာ)
+    }
+    // ══ KASONE (ကဆုန်ညောင်ရေ) ══
+    else if (activeHoliday === 'kasone') {
         html = `
-            <div class="decor-item" style="position:absolute;top:-8px;left:5px;font-size:46px;opacity:0.6;">☸️</div>
-            ${lanternSvg('auto', '-5px', 46, 0.55)}
-            <div class="decor-item fast" style="position:absolute;bottom:8px;right:22%;font-size:26px;opacity:0.45;">✨</div>
-            <div class="decor-item slow" style="position:absolute;bottom:10px;left:18%;font-size:22px;opacity:0.38;">🙏</div>
+            ${pagodaSvg('5px', '-5px', 50, 0.65)}
+            <div style="position:absolute;top:5px;right:10px;font-size:38px;opacity:0.58;animation:floatDecor 4s ease-in-out infinite alternate;">🌳</div>
+            <div style="position:absolute;bottom:8px;right:25%;font-size:26px;opacity:0.45;animation:floatDecor 3s ease-in-out infinite alternate;">💧</div>
+            <div style="position:absolute;bottom:10px;left:20%;font-size:22px;opacity:0.38;animation:sparkle 3s ease-in-out infinite;">✨</div>
+            ${waterSvg('auto', 'auto', 34, 0.5)}
         `;
-    } else if (activeHoliday === 'thadingyut') {
-        // သီတင်းကျွတ် - မဲ့ပင်မီး / ဆီမီးများ (အောက်တိုဘာ)
+    }
+    // ══ MARTYRS DAY (အာဇာနည်နေ့) ══
+    else if (activeHoliday === 'martyrs_day') {
         html = `
-            ${lanternSvg('5px', '-10px', 60, 0.72)}
-            ${lanternSvg('auto', '-8px', 48, 0.62)}
-            ${lanternSvg('35%', '-6px', 42, 0.5)}
-            ${lanternSvg('auto', 'auto', 36, 0.48)}
-            <div class="decor-item fast" style="position:absolute;bottom:8px;left:18%;font-size:24px;opacity:0.45;">✨</div>
-            <div class="decor-item slow" style="position:absolute;top:15px;left:55%;font-size:20px;opacity:0.4;">⭐</div>
+            <div style="position:absolute;top:-5px;left:8px;font-size:44px;opacity:0.58;animation:lanternFloat 4s ease-in-out infinite;">🕯️</div>
+            <div style="position:absolute;top:5px;right:8px;font-size:38px;opacity:0.52;animation:floatDecor 4s ease-in-out infinite alternate;">🌹</div>
+            <div style="position:absolute;bottom:8px;right:26%;font-size:24px;opacity:0.42;animation:floatDecor 3.5s ease-in-out infinite alternate;">🕊️</div>
+            <div style="position:absolute;bottom:12px;left:26%;font-size:22px;opacity:0.36;animation:floatDecor 4.5s ease-in-out infinite alternate;">🌿</div>
+            ${pagodaSvg('auto', 'auto', 40, 0.42)}
         `;
-    } else if (activeHoliday === 'tazaungdaing') {
-        // တန်ဆောင်တိုင် - မီးပုံး / မီးရောင် (နိုဝင်ဘာ)
+    }
+    // ══ WASO (ဝါဆိုပွဲ) ══
+    else if (activeHoliday === 'waso_begin') {
         html = `
-            ${fireworkSvg('5px', '-10px', 58, 0.65)}
-            ${lanternSvg('auto', '-8px', 48, 0.58)}
-            ${fireworkSvg('38%', '-5px', 44, 0.5)}
-            <div class="decor-item" style="position:absolute;bottom:0px;left:12px;font-size:30px;animation:floatUp 5s linear infinite;opacity:0.5;">🎐</div>
-            ${lanternSvg('auto', 'auto', 36, 0.45)}
-            <div class="decor-item fast" style="position:absolute;bottom:10px;left:35%;font-size:22px;opacity:0.42;">✨</div>
+            ${lanternSvg('6px', '-10px', 54, 0.68)}
+            <div style="position:absolute;top:6px;right:12px;font-size:38px;opacity:0.58;animation:lanternFloat 3.5s ease-in-out infinite;">☸️</div>
+            ${pagodaSvg('36%', 'auto', 42, 0.5)}
+            <div style="position:absolute;bottom:10px;left:30%;font-size:22px;opacity:0.42;animation:sparkle 2.5s ease-in-out infinite;">🕯️</div>
+            ${moonSvg('auto', '-5px', 42, 0.45)}
         `;
-    } else if (activeHoliday === 'national_day') {
-        // အမျိုးသားနေ့ (ဒီဇင်ဘာ ၁၀)
+    }
+    // ══ DHAMMA DAY (ဝါဆိုပွဲ/ကညင်မီး) ══
+    else if (activeHoliday === 'dhamma_day') {
         html = `
-            <div class="decor-item" style="position:absolute;top:-5px;left:5px;font-size:44px;opacity:0.6;">🇲🇲</div>
-            <div class="decor-item slow" style="position:absolute;top:8px;right:8px;font-size:34px;opacity:0.5;">🌟</div>
-            ${padaukSvg('32%', '-8px', 42, 8, 0.45, 'fast')}
-            <div class="decor-item" style="position:absolute;bottom:8px;right:22%;font-size:24px;opacity:0.38;">✨</div>
+            ${lanternSvg('8px', '-10px', 56, 0.7)}
+            <div style="position:absolute;top:5px;right:12px;font-size:38px;opacity:0.58;animation:lanternFloat 3s ease-in-out infinite;">☸️</div>
+            ${lanternSvg('auto', 'auto', 42, 0.55)}
+            <div style="position:absolute;bottom:8px;left:28%;font-size:24px;opacity:0.44;animation:lanternFloat 4s ease-in-out infinite;">🕯️</div>
+            ${pagodaSvg('38%', '-5px', 40, 0.45)}
         `;
-    } else if (activeHoliday === 'christmas') {
-        // ခရစ္စမတ် (ဒီဇင်ဘာ ၂၅)
+    }
+    // ══ WASO END (ဝါကြွတ်) ══
+    else if (activeHoliday === 'waso_end') {
         html = `
-            <div class="decor-item" style="position:absolute;top:-8px;left:5px;font-size:46px;opacity:0.62;">🎄</div>
-            <div class="decor-item fast" style="position:absolute;top:-5px;right:8px;font-size:38px;opacity:0.55;">🎅</div>
-            <div class="decor-item slow" style="position:absolute;bottom:8px;right:20%;font-size:28px;opacity:0.45;">⭐</div>
-            <div class="decor-item" style="position:absolute;bottom:10px;left:20%;font-size:24px;opacity:0.38;">🎁</div>
-            <div class="decor-item fast" style="position:absolute;top:10px;left:42%;font-size:18px;opacity:0.35;">❄️</div>
+            <div style="position:absolute;top:-8px;left:5px;font-size:48px;opacity:0.65;animation:lanternFloat 3.5s ease-in-out infinite;">☸️</div>
+            ${lanternSvg('auto', '-5px', 50, 0.6)}
+            <div style="position:absolute;bottom:8px;right:24%;font-size:26px;opacity:0.48;animation:sparkle 2s ease-in-out infinite;">✨</div>
+            <div style="position:absolute;bottom:12px;left:20%;font-size:22px;opacity:0.4;animation:floatDecor 4s ease-in-out infinite alternate;">🙏</div>
+        `;
+    }
+    // ══ THADINGYUT (သီတင်းကျွတ်) ══ Light Festival
+    else if (activeHoliday === 'thadingyut') {
+        html = `
+            ${lanternSvg('5px', '-12px', 64, 0.75)}
+            ${lanternSvg('auto', '-8px', 52, 0.65)}
+            ${lanternSvg('34%', '-6px', 44, 0.55)}
+            ${lanternSvg('auto', 'auto', 38, 0.5)}
+            ${fireworkSvg('18%', '-5px', 32, 0.45)}
+            <div style="position:absolute;bottom:8px;left:18%;font-size:26px;opacity:0.48;animation:sparkle 2s ease-in-out infinite;">✨</div>
+            <div style="position:absolute;top:14px;left:56%;font-size:20px;opacity:0.42;animation:sparkle 2.5s 0.5s ease-in-out infinite;">⭐</div>
+        `;
+    }
+    // ══ TAZAUNGDAING (တန်ဆောင်တိုင်) ══ Balloon+Lantern
+    else if (activeHoliday === 'tazaungdaing') {
+        html = `
+            ${miBuSvg('5px', '-8px', 58, 0.68)}
+            ${miBuSvg('auto', '-5px', 46, 0.58, 'animation-delay:1s;')}
+            ${fireworkSvg('36%', '-6px', 44, 0.52)}
+            ${lanternSvg('auto', 'auto', 38, 0.48)}
+            <div style="position:absolute;bottom:0px;left:14px;font-size:30px;animation:floatUp 5s linear infinite;opacity:0.52;">🎐</div>
+            <div style="position:absolute;bottom:10px;left:36%;font-size:22px;opacity:0.44;animation:sparkle 2s ease-in-out infinite;">✨</div>
+        `;
+    }
+    // ══ NATIONAL DAY (အမျိုးသားနေ့) ══
+    else if (activeHoliday === 'national_day') {
+        html = `
+            <div style="position:absolute;top:-5px;left:5px;font-size:46px;opacity:0.65;animation:floatDecor 4s ease-in-out infinite alternate;">🇲🇲</div>
+            <div style="position:absolute;top:8px;right:8px;font-size:36px;opacity:0.52;animation:sparkle 3s ease-in-out infinite;">🌟</div>
+            ${padaukSvg('32%', '-8px', 44, 8, 0.48)}
+            ${pagodaSvg('auto', 'auto', 44, 0.45)}
+            <div style="position:absolute;bottom:8px;right:24%;font-size:22px;opacity:0.38;animation:sparkle 2.5s ease-in-out infinite;">✨</div>
+        `;
+    }
+    // ══ CHRISTMAS (ခရစ္စမတ်) ══
+    else if (activeHoliday === 'christmas') {
+        html = `
+            <div style="position:absolute;top:-8px;left:5px;font-size:48px;opacity:0.65;animation:floatDecor 4s ease-in-out infinite alternate;">🎄</div>
+            <div style="position:absolute;top:-5px;right:8px;font-size:40px;opacity:0.58;animation:floatDecor 3.5s ease-in-out infinite alternate;">🎅</div>
+            ${snowflakeSvg('8%',  0,   20)}
+            ${snowflakeSvg('22%', 1.0, 16)}
+            ${snowflakeSvg('40%', 0.5, 18)}
+            ${snowflakeSvg('58%', 1.5, 14)}
+            ${snowflakeSvg('75%', 0.2, 17)}
+            ${snowflakeSvg('90%', 1.2, 15)}
+            <div style="position:absolute;bottom:8px;right:22%;font-size:28px;opacity:0.48;animation:sparkle 2.5s ease-in-out infinite;">⭐</div>
+            <div style="position:absolute;bottom:10px;left:22%;font-size:24px;opacity:0.4;animation:floatDecor 3.5s ease-in-out infinite alternate;">🎁</div>
+        `;
+    }
+    // ══ HALLOWEEN ══
+    else if (activeHoliday === 'halloween') {
+        html = `
+            <div style="position:absolute;top:-8px;left:5px;font-size:48px;opacity:0.65;animation:floatDecor 3.5s ease-in-out infinite alternate;">🎃</div>
+            <div style="position:absolute;top:-5px;right:8px;font-size:40px;opacity:0.6;animation:floatDecor 4s ease-in-out infinite alternate;">🦇</div>
+            ${spiderwebSvg('34%', '-5px', 52, 0.45)}
+            <div style="position:absolute;bottom:8px;right:20%;font-size:28px;opacity:0.5;animation:floatDecor 3s ease-in-out infinite alternate;">👻</div>
+            <div style="position:absolute;bottom:10px;left:20%;font-size:22px;opacity:0.42;animation:sparkle 2.5s ease-in-out infinite;">🕸️</div>
+        `;
+    }
+    // ══ CHINESE NEW YEAR (တရုတ်နှစ်သစ်) ══
+    else if (activeHoliday === 'chinese_ny') {
+        html = `
+            ${dragonCloudSvg('-5px', '-8px', 90, 0.72)}
+            ${lanternSvg('auto', '-10px', 54, 0.68)}
+            ${chineseCoinSvg('28%', '-5px', 40, 0.5)}
+            ${lanternSvg('auto', 'auto', 42, 0.55)}
+            ${chineseCoinSvg('-5px', 'auto', 36, 0.42)}
+            <div style="position:absolute;bottom:8px;left:35%;font-size:24px;opacity:0.45;animation:sparkle 2s ease-in-out infinite;">✨</div>
+            <div style="position:absolute;top:10px;left:58%;font-size:22px;opacity:0.4;animation:floatDecor 3s ease-in-out infinite alternate;">🧧</div>
+        `;
+    }
+    // ══ EID AL-FITR (ငှက်ဖျားဝတ်ပွဲ) ══
+    else if (activeHoliday === 'eid_fitr') {
+        html = `
+            ${moonSvg('5px', '-5px', 58, 0.68, '#FFF9C4')}
+            <div style="position:absolute;top:5px;right:8px;font-size:40px;opacity:0.58;animation:floatDecor 4s ease-in-out infinite alternate;">🕌</div>
+            <div style="position:absolute;bottom:8px;right:22%;font-size:28px;opacity:0.48;animation:sparkle 2.5s ease-in-out infinite;">⭐</div>
+            <div style="position:absolute;bottom:12px;left:20%;font-size:24px;opacity:0.42;animation:floatDecor 3.5s ease-in-out infinite alternate;">🌙</div>
+            ${chineseCoinSvg('40%', 'auto', 32, 0.38)}
+        `;
+    }
+    // ══ DIWALI (ဒေဝါလ/မီးပွဲ) ══
+    else if (activeHoliday === 'diwali') {
+        html = `
+            ${diyaSvg('5px', '-5px', 54, 0.72)}
+            ${diyaSvg('auto', '-8px', 46, 0.65)}
+            ${diyaSvg('38%', 'auto', 40, 0.55)}
+            ${fireworkSvg('-5px', 'auto', 44, 0.5)}
+            ${fireworkSvg('auto', '-5px', 38, 0.48)}
+            <div style="position:absolute;bottom:8px;left:36%;font-size:22px;opacity:0.45;animation:sparkle 2s ease-in-out infinite;">✨</div>
+            <div style="position:absolute;top:10px;left:55%;font-size:20px;opacity:0.4;animation:sparkle 2.5s 0.5s ease-in-out infinite;">🌟</div>
         `;
     }
 
     decorContainer.innerHTML = html;
-    
     const grid = hero.querySelector('.hero-grid');
-    if (grid) {
-        grid.insertAdjacentElement('afterend', decorContainer);
-    } else {
-        hero.appendChild(decorContainer);
-    }
+    if (grid) { grid.insertAdjacentElement('afterend', decorContainer); }
+    else { hero.appendChild(decorContainer); }
 }
 
 function updateHero() { 
