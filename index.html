@@ -2491,7 +2491,7 @@ function openNotifPanel() {
     if(!db.notifications.length) {
         notiHtml = '<div class="empty" style="padding:30px 20px;"><div class="ei"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div><p>'+t('no_notif')+'</p></div>';
     } else {
-        notiHtml = db.notifications.map(n => `<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start"><div style="width:36px;height:36px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--text2);flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div><div style="flex:1"><div style="font-size:0.85rem;line-height:1.4">${n.text}</div><div style="font-size:0.65rem;color:var(--text3);margin-top:4px">${fmtTime(new Date(n.ts).toISOString())}</div></div></div>`).join('');
+        notiHtml = db.notifications.map(n => `<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;gap:12px;align-items:flex-start"><div style="width:36px;height:36px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;color:var(--text2);flex-shrink:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div><div style="flex:1"><div style="font-size:0.85rem;line-height:1.4">${n.text}</div><div style="font-size:0.65rem;color:var(--text3);margin-top:4px">${fmtTime(new Date(n.ts))}</div></div></div>`).join('');
     }
     
     el.innerHTML = activeRemindersHtml + `<div style="font-size:0.8rem; font-weight:700; color:var(--text3); margin-bottom:8px; text-transform:uppercase; letter-spacing:0.5px;">${t('recent_activity')}</div>` + notiHtml; 
@@ -2825,34 +2825,52 @@ function getSortedDebtProfiles(profiles) {
     return res;
 }
 
-// ── SEASONAL DECORATIONS (MYANMAR HOLIDAYS) ──
+// ── SEASONAL DECORATIONS (MYANMAR 12 MONTHS HOLIDAYS) ──
 function updateSeasonalDecorations() {
     const hero = document.querySelector('.hero');
     if (!hero) return;
 
-    // အဟောင်းရှိရင် အရင်ဖျက်မယ်
     const existingDecor = document.getElementById('hero-decor-layer');
     if (existingDecor) existingDecor.remove();
 
     const today = new Date();
-    
-    // ပွဲတော်ရက်များ သတ်မှတ်ခြင်း (လ, ရက်) - နှစ်အလိုက် လိုအပ်ပါက ပြင်ဆင်နိုင်ပါသည်
+    const yr = today.getFullYear();
+
+    // မြန်မာနိုင်ငံ ၁၂ လ ရာသီပွဲတော်များ (month, day)
     const holidays = [
-        { id: 'thingyan', month: 4, date: 14 },       // သင်္ကြန် (ဧပြီ ၁၄ ဝန်းကျင်)
-        { id: 'thadingyut', month: 10, date: 17 },    // သီတင်းကျွတ် (အောက်တိုဘာ ၁၇ ဝန်းကျင်)
-        { id: 'tazaungdaing', month: 11, date: 15 },  // တန်ဆောင်တိုင် (နိုဝင်ဘာ ၁၅ ဝန်းကျင်)
-        { id: 'newyear', month: 1, date: 1 }          // New Year (ဇန်နဝါရီ ၁)
+        // ဇန်နဝါရီ - နှစ်သစ်ကူး / ကရင်နှစ်သစ်
+        { id: 'newyear',       month: 1,  date: 1  },   // ဇန်နဝါရီ ၁ - နှစ်သစ်ကူး
+        { id: 'karen_newyear', month: 1,  date: 14 },   // ဇန်နဝါရီ ၁၄ - ကရင်နှစ်သစ်ကူး
+        // ဖေဖော်ဝါရီ - Union Day
+        { id: 'union_day',     month: 2,  date: 12 },   // ဖေဖော်ဝါရီ ၁၂ - ပြည်ထောင်စုနေ့
+        // မတ် - တပေါင်းပွဲတော်
+        { id: 'tabaung',       month: 3,  date: 6  },   // မတ် - တပေါင်းမြဝါပွဲ
+        // ဧပြီ - သင်္ကြန်
+        { id: 'thingyan',      month: 4,  date: 14 },   // ဧပြီ ၁၃-၁၆ - သင်္ကြန်
+        // မေ - မြန်မာနှစ်သစ် / Workers' Day
+        { id: 'myanmar_newyear', month: 4, date: 17 },  // ဧပြီ ၁၇ - မြန်မာနှစ်သစ်
+        { id: 'workers_day',   month: 5,  date: 1  },   // မေ ၁ - အလုပ်သမားနေ့
+        // ဇွန် - Martyrs' Day
+        { id: 'martyrs_day',   month: 7,  date: 19 },   // ဇူလိုင် ၁၉ - အာဇာနည်နေ့
+        // ဩဂုတ် - သာသနာနေ့
+        { id: 'dhamma_day',    month: 8,  date: 1  },   // ဩဂုတ် - ဝါဆိုပွဲ
+        // စက်တင်ဘာ - တပသေ့ (ဝါဆွတ်)
+        { id: 'waso_end',      month: 9,  date: 15 },   // စက်တင်ဘာ - ဝါကွတ်ပွဲ
+        // အောက်တိုဘာ - သီတင်းကျွတ်
+        { id: 'thadingyut',    month: 10, date: 17 },   // အောက်တိုဘာ - သီတင်းကျွတ်ပွဲ
+        // နိုဝင်ဘာ - တန်ဆောင်တိုင်
+        { id: 'tazaungdaing',  month: 11, date: 15 },   // နိုဝင်ဘာ - တန်ဆောင်တိုင်ပွဲ
+        // ဒီဇင်ဘာ - အမျိုးသားနေ့
+        { id: 'national_day',  month: 12, date: 10 },   // ဒီဇင်ဘာ - အမျိုးသားနေ့
+        { id: 'christmas',     month: 12, date: 25 },   // ဒီဇင်ဘာ ၂၅ - ခရစ္စမတ်နေ့
     ];
 
     let activeHoliday = null;
 
-    // နေ့ရက်မတိုင်ခင် ၅ ရက်၊ ပြီးနောက် ၅ ရက် စစ်ဆေးခြင်း
     for (let h of holidays) {
-        const targetDate = new Date(today.getFullYear(), h.month - 1, h.date);
-        const diffTime = today.getTime() - targetDate.getTime();
-        const diffDays = Math.round(diffTime / (1000 * 3600 * 24));
-        
-        if (diffDays >= -5 && diffDays <= 5) {
+        const targetDate = new Date(yr, h.month - 1, h.date);
+        const diffDays = Math.round((today.getTime() - targetDate.getTime()) / 86400000);
+        if (diffDays >= -3 && diffDays <= 3) {
             activeHoliday = h.id;
             break;
         }
@@ -2860,44 +2878,203 @@ function updateSeasonalDecorations() {
 
     if (!activeHoliday) return;
 
-    // ပွဲတော်အလိုက် အလှဆင်မည့် Emoji/UI များ
     const decorContainer = document.createElement('div');
     decorContainer.id = 'hero-decor-layer';
     decorContainer.className = 'hero-decor';
 
+    // ── Helper: convert x/y 'auto' to right/bottom edge ──
+    const posStyle = (x, y) => {
+        const h = (x === 'auto') ? 'right:-5px' : `left:${x}`;
+        const v = (y === 'auto') ? 'bottom:-5px' : `top:${y}`;
+        return `${v};${h}`;
+    };
+
+    // ပိတောက်ပန်း SVG (မြန်မာနိုင်ငံအမျိုးသားပန်း)
+    const padaukSvg = (x, y, size, rot, opacity, spd) => `
+        <div class="decor-item ${spd}" style="position:absolute;${posStyle(x,y)};opacity:${opacity};transform:rotate(${rot}deg);pointer-events:none;">
+            <svg width="${size}" height="${size}" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <ellipse cx="30" cy="18" rx="7" ry="14" fill="#FFB347" transform="rotate(0 30 30)"/>
+                <ellipse cx="30" cy="18" rx="7" ry="14" fill="#FFA020" transform="rotate(72 30 30)"/>
+                <ellipse cx="30" cy="18" rx="7" ry="14" fill="#FFB347" transform="rotate(144 30 30)"/>
+                <ellipse cx="30" cy="18" rx="7" ry="14" fill="#FF8C00" transform="rotate(216 30 30)"/>
+                <ellipse cx="30" cy="18" rx="7" ry="14" fill="#FFCA28" transform="rotate(288 30 30)"/>
+                <circle cx="30" cy="30" r="6" fill="#FFE066"/>
+                <circle cx="30" cy="30" r="3" fill="#FFA500"/>
+            </svg>
+        </div>`;
+
+    // ရေဖျန်း SVG (သင်္ကြန်)
+    const waterDropSvg = (x, y, size, opacity) => `
+        <div class="decor-item fast" style="position:absolute;${posStyle(x,y)};opacity:${opacity};pointer-events:none;">
+            <svg width="${size}" height="${size}" viewBox="0 0 40 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20 5 Q30 20 30 30 A10 10 0 0 1 10 30 Q10 20 20 5Z" fill="#7EC8E3" opacity="0.85"/>
+                <path d="M20 12 Q26 22 26 28 A6 6 0 0 1 14 28 Q14 22 20 12Z" fill="#B3E5FC" opacity="0.6"/>
+            </svg>
+        </div>`;
+
+    // မဲ့ပင်မီး / ဆီမီး SVG (သီတင်းကျွတ်)
+    const lanternSvg = (x, y, size, opacity) => `
+        <div class="decor-item slow" style="position:absolute;${posStyle(x,y)};opacity:${opacity};pointer-events:none;">
+            <svg width="${size}" height="${size}" viewBox="0 0 50 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <rect x="10" y="15" width="30" height="40" rx="8" fill="#E53935" opacity="0.9"/>
+                <rect x="14" y="19" width="22" height="32" rx="5" fill="#FFEE58" opacity="0.7"/>
+                <path d="M25 8 Q22 12 22 15 H28 Q28 12 25 8Z" fill="#FFB300"/>
+                <circle cx="25" cy="8" r="3" fill="#FFF176"/>
+                <rect x="10" y="15" width="30" height="5" rx="3" fill="#B71C1C"/>
+                <rect x="10" y="50" width="30" height="5" rx="3" fill="#B71C1C"/>
+                <line x1="25" y1="8" x2="25" y2="2" stroke="#FFB300" stroke-width="2"/>
+                <circle cx="25" cy="2" r="2" fill="#FFB300"/>
+            </svg>
+        </div>`;
+
+    // မီးပုံး / ကြယ်မီး SVG (တန်ဆောင်တိုင်)
+    const fireworkSvg = (x, y, size, opacity) => `
+        <div class="decor-item" style="position:absolute;${posStyle(x,y)};opacity:${opacity};animation:floatDecor 2.5s ease-in-out infinite alternate;pointer-events:none;">
+            <svg width="${size}" height="${size}" viewBox="0 0 60 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="30" cy="30" r="5" fill="#FFE066"/>
+                <line x1="30" y1="5" x2="30" y2="18" stroke="#FFB300" stroke-width="3" stroke-linecap="round"/>
+                <line x1="30" y1="42" x2="30" y2="55" stroke="#FFB300" stroke-width="3" stroke-linecap="round"/>
+                <line x1="5" y1="30" x2="18" y2="30" stroke="#FF6B35" stroke-width="3" stroke-linecap="round"/>
+                <line x1="42" y1="30" x2="55" y2="30" stroke="#FF6B35" stroke-width="3" stroke-linecap="round"/>
+                <line x1="12" y1="12" x2="21" y2="21" stroke="#F7DC6F" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="39" y1="39" x2="48" y2="48" stroke="#F7DC6F" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="48" y1="12" x2="39" y2="21" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/>
+                <line x1="21" y1="39" x2="12" y2="48" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+        </div>`;
+
     let html = '';
 
     if (activeHoliday === 'thingyan') {
+        // သင်္ကြန် - ပိတောက်ပန်းများနှင့် ရေဖျန်းများ (ဧပြီ/တန်ခူးလ)
         html = `
-            <div class="decor-item" style="top: -10px; left: -5px; font-size: 45px; transform: rotate(-20deg);">🌼</div>
-            <div class="decor-item slow" style="top: 20px; right: 10px; font-size: 35px;">🌿</div>
-            <div class="decor-item fast" style="bottom: -5px; right: 20px; font-size: 40px;">💦</div>
-            <div class="decor-item" style="bottom: 15px; left: 30%; font-size: 25px; opacity: 0.3;">💧</div>
+            ${padaukSvg('-8px', '-12px', 62, -25, 0.7, 'slow')}
+            ${padaukSvg('auto', '-8px', 50, 20, 0.6, 'fast')}
+            ${padaukSvg('25%', 'auto', 44, 10, 0.45, '')}
+            ${waterDropSvg('auto', '10px', 36, 0.6)}
+            ${waterDropSvg('18%', 'auto', 28, 0.45)}
+            ${waterDropSvg('55%', '-5px', 22, 0.35)}
+            ${padaukSvg('60%', 'auto', 32, -15, 0.35, 'slow')}
+            <div class="decor-item fast" style="position:absolute;bottom:8px;right:18px;font-size:28px;opacity:0.5;">💦</div>
+            <div class="decor-item slow" style="position:absolute;top:10px;left:40%;font-size:18px;opacity:0.3;">💧</div>
         `;
-    } else if (activeHoliday === 'thadingyut') {
+    } else if (activeHoliday === 'myanmar_newyear') {
+        // မြန်မာနှစ်သစ် - ပိတောက်ပန်းသီး (တန်ခူးလ)
         html = `
-            <div class="decor-item" style="top: -10px; left: 15px; font-size: 40px;">🏮</div>
-            <div class="decor-item slow" style="top: -5px; right: 15px; font-size: 35px;">🏮</div>
-            <div class="decor-item fast" style="bottom: 15px; right: 40%; font-size: 25px;">✨</div>
-            <div class="decor-item" style="bottom: 5px; left: 10px; font-size: 20px;">🪔</div>
-        `;
-    } else if (activeHoliday === 'tazaungdaing') {
-        html = `
-            <div class="decor-item" style="bottom: 0px; left: 15px; font-size: 35px; animation: floatUp 5s linear infinite;">🎐</div>
-            <div class="decor-item slow" style="top: 10px; right: 10px; font-size: 40px;">🎆</div>
-            <div class="decor-item fast" style="top: 40px; left: 40%; font-size: 20px;">⭐</div>
+            ${padaukSvg('-5px', '-15px', 70, -18, 0.8, '')}
+            ${padaukSvg('auto', '-10px', 55, 15, 0.65, 'slow')}
+            ${padaukSvg('38%', '-8px', 42, 5, 0.5, 'fast')}
+            ${padaukSvg('-10px', 'auto', 38, -30, 0.4, '')}
+            ${padaukSvg('auto', 'auto', 32, 22, 0.4, 'slow')}
+            <div class="decor-item" style="position:absolute;top:8px;left:62%;font-size:26px;opacity:0.45;">✨</div>
         `;
     } else if (activeHoliday === 'newyear') {
+        // ဒေသတမ်းနှစ်သစ် (ဇန်နဝါရီ) - ဆင်ကူးပွဲ
         html = `
-            <div class="decor-item" style="top: -5px; left: 10px; font-size: 40px;">🎉</div>
-            <div class="decor-item fast" style="bottom: 10px; right: 10px; font-size: 35px;">🎊</div>
-            <div class="decor-item slow" style="top: 20px; right: 30%; font-size: 25px;">✨</div>
+            <div class="decor-item" style="position:absolute;top:-5px;left:8px;font-size:44px;opacity:0.6;">🎉</div>
+            <div class="decor-item fast" style="position:absolute;bottom:8px;right:8px;font-size:38px;opacity:0.55;">🎊</div>
+            <div class="decor-item slow" style="position:absolute;top:15px;right:28%;font-size:26px;opacity:0.4;">✨</div>
+            <div class="decor-item" style="position:absolute;bottom:12px;left:25%;font-size:22px;opacity:0.35;">🌟</div>
+            <div class="decor-item fast" style="position:absolute;top:5px;left:48%;font-size:20px;opacity:0.3;">🎆</div>
+        `;
+    } else if (activeHoliday === 'karen_newyear') {
+        // ကရင်နှစ်သစ် (ဇန်နဝါရီ ၁၄)
+        html = `
+            <div class="decor-item slow" style="position:absolute;top:-8px;left:-5px;font-size:48px;opacity:0.55;">🌺</div>
+            <div class="decor-item" style="position:absolute;top:-5px;right:12px;font-size:38px;opacity:0.5;">🌸</div>
+            <div class="decor-item fast" style="position:absolute;bottom:6px;right:22%;font-size:26px;opacity:0.4;">✨</div>
+            <div class="decor-item slow" style="position:absolute;bottom:10px;left:15px;font-size:22px;opacity:0.38;">💛</div>
+        `;
+    } else if (activeHoliday === 'union_day') {
+        // ပြည်ထောင်စုနေ့ (ဖေဖော်ဝါရီ ၁၂)
+        html = `
+            <div class="decor-item" style="position:absolute;top:-5px;left:5px;font-size:44px;opacity:0.6;">🇲🇲</div>
+            <div class="decor-item slow" style="position:absolute;top:5px;right:10px;font-size:32px;opacity:0.5;">⭐</div>
+            <div class="decor-item fast" style="position:absolute;bottom:8px;right:20%;font-size:26px;opacity:0.4;">🕊️</div>
+            <div class="decor-item" style="position:absolute;bottom:12px;left:28%;font-size:22px;opacity:0.35;">🌿</div>
+        `;
+    } else if (activeHoliday === 'tabaung') {
+        // တပေါင်း / ကဆုန်ပွဲ (မတ်)
+        html = `
+            ${padaukSvg('-5px', '-10px', 58, -20, 0.65, 'slow')}
+            <div class="decor-item" style="position:absolute;top:5px;right:10px;font-size:36px;opacity:0.55;">🌕</div>
+            <div class="decor-item fast" style="position:absolute;bottom:8px;right:25%;font-size:24px;opacity:0.4;">✨</div>
+            ${padaukSvg('auto', 'auto', 38, 15, 0.42, '')}
+            <div class="decor-item slow" style="position:absolute;bottom:10px;left:15%;font-size:20px;opacity:0.35;">🌸</div>
+        `;
+    } else if (activeHoliday === 'workers_day') {
+        // အလုပ်သမားနေ့ (မေ ၁)
+        html = `
+            <div class="decor-item" style="position:absolute;top:-5px;left:8px;font-size:42px;opacity:0.55;">⚙️</div>
+            <div class="decor-item slow" style="position:absolute;top:5px;right:10px;font-size:36px;opacity:0.5;">🔧</div>
+            <div class="decor-item fast" style="position:absolute;bottom:8px;right:22%;font-size:26px;opacity:0.4;">💪</div>
+            <div class="decor-item" style="position:absolute;bottom:10px;left:30%;font-size:22px;opacity:0.35;">⭐</div>
+        `;
+    } else if (activeHoliday === 'martyrs_day') {
+        // အာဇာနည်နေ့ (ဇူလိုင် ၁၉)
+        html = `
+            <div class="decor-item slow" style="position:absolute;top:-5px;left:8px;font-size:42px;opacity:0.55;">🕯️</div>
+            <div class="decor-item" style="position:absolute;top:5px;right:8px;font-size:36px;opacity:0.5;">🌹</div>
+            <div class="decor-item fast" style="position:absolute;bottom:8px;right:25%;font-size:22px;opacity:0.4;">🕊️</div>
+            <div class="decor-item slow" style="position:absolute;bottom:10px;left:25%;font-size:20px;opacity:0.35;">🌿</div>
+        `;
+    } else if (activeHoliday === 'dhamma_day') {
+        // ဝါဆိုပွဲ / ကညင်ပင်မီးထွန်းပွဲ (ဩဂုတ်)
+        html = `
+            ${lanternSvg('8px', '-8px', 52, 0.65)}
+            <div class="decor-item" style="position:absolute;top:5px;right:12px;font-size:36px;opacity:0.55;">☸️</div>
+            ${lanternSvg('auto', 'auto', 40, 0.5)}
+            <div class="decor-item slow" style="position:absolute;bottom:8px;left:28%;font-size:22px;opacity:0.4;">🕯️</div>
+        `;
+    } else if (activeHoliday === 'waso_end') {
+        // ဝါကွတ်ပွဲ (စက်တင်ဘာ)
+        html = `
+            <div class="decor-item" style="position:absolute;top:-8px;left:5px;font-size:46px;opacity:0.6;">☸️</div>
+            ${lanternSvg('auto', '-5px', 46, 0.55)}
+            <div class="decor-item fast" style="position:absolute;bottom:8px;right:22%;font-size:26px;opacity:0.45;">✨</div>
+            <div class="decor-item slow" style="position:absolute;bottom:10px;left:18%;font-size:22px;opacity:0.38;">🙏</div>
+        `;
+    } else if (activeHoliday === 'thadingyut') {
+        // သီတင်းကျွတ် - မဲ့ပင်မီး / ဆီမီးများ (အောက်တိုဘာ)
+        html = `
+            ${lanternSvg('5px', '-10px', 60, 0.72)}
+            ${lanternSvg('auto', '-8px', 48, 0.62)}
+            ${lanternSvg('35%', '-6px', 42, 0.5)}
+            ${lanternSvg('auto', 'auto', 36, 0.48)}
+            <div class="decor-item fast" style="position:absolute;bottom:8px;left:18%;font-size:24px;opacity:0.45;">✨</div>
+            <div class="decor-item slow" style="position:absolute;top:15px;left:55%;font-size:20px;opacity:0.4;">⭐</div>
+        `;
+    } else if (activeHoliday === 'tazaungdaing') {
+        // တန်ဆောင်တိုင် - မီးပုံး / မီးရောင် (နိုဝင်ဘာ)
+        html = `
+            ${fireworkSvg('5px', '-10px', 58, 0.65)}
+            ${lanternSvg('auto', '-8px', 48, 0.58)}
+            ${fireworkSvg('38%', '-5px', 44, 0.5)}
+            <div class="decor-item" style="position:absolute;bottom:0px;left:12px;font-size:30px;animation:floatUp 5s linear infinite;opacity:0.5;">🎐</div>
+            ${lanternSvg('auto', 'auto', 36, 0.45)}
+            <div class="decor-item fast" style="position:absolute;bottom:10px;left:35%;font-size:22px;opacity:0.42;">✨</div>
+        `;
+    } else if (activeHoliday === 'national_day') {
+        // အမျိုးသားနေ့ (ဒီဇင်ဘာ ၁၀)
+        html = `
+            <div class="decor-item" style="position:absolute;top:-5px;left:5px;font-size:44px;opacity:0.6;">🇲🇲</div>
+            <div class="decor-item slow" style="position:absolute;top:8px;right:8px;font-size:34px;opacity:0.5;">🌟</div>
+            ${padaukSvg('32%', '-8px', 42, 8, 0.45, 'fast')}
+            <div class="decor-item" style="position:absolute;bottom:8px;right:22%;font-size:24px;opacity:0.38;">✨</div>
+        `;
+    } else if (activeHoliday === 'christmas') {
+        // ခရစ္စမတ် (ဒီဇင်ဘာ ၂၅)
+        html = `
+            <div class="decor-item" style="position:absolute;top:-8px;left:5px;font-size:46px;opacity:0.62;">🎄</div>
+            <div class="decor-item fast" style="position:absolute;top:-5px;right:8px;font-size:38px;opacity:0.55;">🎅</div>
+            <div class="decor-item slow" style="position:absolute;bottom:8px;right:20%;font-size:28px;opacity:0.45;">⭐</div>
+            <div class="decor-item" style="position:absolute;bottom:10px;left:20%;font-size:24px;opacity:0.38;">🎁</div>
+            <div class="decor-item fast" style="position:absolute;top:10px;left:42%;font-size:18px;opacity:0.35;">❄️</div>
         `;
     }
 
     decorContainer.innerHTML = html;
     
-    // Grid ရဲ့အနောက် (သို့) Hero အောက်ဆုံးပိုင်းမှာ ကပ်ထည့်မယ်
     const grid = hero.querySelector('.hero-grid');
     if (grid) {
         grid.insertAdjacentElement('afterend', decorContainer);
@@ -3897,7 +4074,7 @@ function openDebtModal(entryId = null, personName = null, subFolderId = null) {
         document.getElementById('debt-name').value = fname; 
         document.getElementById('debt-amt').value = (found.amount || '').toLocaleString('en-US'); 
         document.getElementById('debt-note').value = found.note || ''; 
-        const foundDt = found.ts ? new Date(found.ts).toISOString().slice(0,16) : (found.date || nowDT()); 
+        const foundDt = found.ts ? (() => { const d = new Date(found.ts); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); })() : (found.date || nowDT()); 
         document.getElementById('debt-date').value = foundDt; 
         document.getElementById('debtMTitle').textContent = t('edit_debt'); 
     } else { 
@@ -4067,7 +4244,7 @@ function renderProfileCard(p) {
             const ibg = e.debtType === 'credit' ? 'rgba(5,150,105,.12)' : 'rgba(220,38,38,.1)';
             const ico = e.debtType === 'credit' ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>';
             const sign = e.debtType === 'credit' ? '+' : '-';
-            const dtStr = (e.ts ? fmtTime(new Date(e.ts).toISOString()) : '');
+            const dtStr = (e.ts ? fmtTime(new Date(e.ts)) : '');
             const eid = e.id;
             const paidBtn = e.debtType !== 'settled' ? `<button class="act-edit" onclick="event.stopPropagation();markSettled('${eid}')">${t('paid_btn')}</button>` : '';
 
@@ -4099,7 +4276,7 @@ function renderProfileCard(p) {
 
     const settledHtml = Object.entries(groupedSettled).map(([d, items]) => {
         return `<div class="tgroup-date" style="padding:10px 0 6px;">${dayLabel(d)}</div>` + items.map(e => {
-            const dtStr = (e.ts ? fmtTime(new Date(e.ts).toISOString()) : '');
+            const dtStr = (e.ts ? fmtTime(new Date(e.ts)) : '');
             return `
             <div class="titem" id="dei-${e.id}" style="border-left-color:var(--text3);opacity:0.75;cursor:pointer;" onclick="toggleActionMenu(this)">
                 <div class="tico" style="background:rgba(100,100,100,.1)">
