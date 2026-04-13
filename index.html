@@ -4687,9 +4687,24 @@ function restoreFromFile(ev) {
     const reader = new FileReader();
     reader.onload = e => {
         try {
-            let importedData = JSON.parse(e.target.result); db = Object.assign(FRESH_DB(), importedData); _isDbDirty = true;
+            let importedData = JSON.parse(e.target.result);
+            db = Object.assign(FRESH_DB(), importedData);
+            
+            ['savedProviders','savedDmCategories','savedCategories','savedDebtNames','reminders','notifications','debtSubFolders','deletedIds','openingsHistory','dailyMoney','expenses'].forEach(k => { if(!db[k]) db[k] = []; });
+            
+            if (!db.settings.migrated_to_dm_v5) {
+                if (db.expenses && db.expenses.length > 0 && (!db.dailyMoney || db.dailyMoney.length === 0)) {
+                    db.dailyMoney = [...db.expenses];
+                    db.expenses = [];
+                }
+                db.settings.migrated_to_dm_v5 = true;
+            }
+            
+            _isDbDirty = true;
             dbSave(); refreshAll(); toast('Data restored!');
-        } catch(err) { toast('Invalid file', 'error'); }
+        } catch(err) { 
+            toast('Invalid file', 'error'); 
+        }
     };
     reader.readAsText(file); ev.target.value = '';
 }
@@ -4984,105 +4999,110 @@ async function pullFromCloud(force=false) {
     try {
         const { data, error } = await sb.from('mmf_data').select('data,updated_at').eq('user_id', currentUser.id).single();
         if (error && error.code !== 'PGRST116') throw error;
-        
+
         if (data && data.data) {
             const cloud = JSON.parse(data.data);
+            const merged = Object.assign(FRESH_DB(), cloud);
 
-            // Build merged deletedIds first so we can filter correctly
-            const mergedDeletedIds = [...new Set([...(cloud.deletedIds||[]), ...(db.deletedIds||[])])];
+            merged.deletedIds = [...new Set([...(cloud.deletedIds||[]), ...(db.deletedIds||[])])].filter(Boolean);
+            if (merged.deletedIds.length > 2000) merged.deletedIds = merged.deletedIds.slice(-1000);
 
-            // mergeById: local data wins for same id (local is most recent after restore)
-            // Both cloud and local entries are kept; local overwrites cloud for same id
             const mergeById = (cloudArr, localArr) => {
                 const map = new Map();
-                // Cloud first (lower priority)
-                if (Array.isArray(cloudArr)) cloudArr.forEach(x => { if (x && x.id && !mergedDeletedIds.includes(x.id)) map.set(x.id, x); });
-                // Local second (higher priority - overwrites cloud for same id)
-                if (Array.isArray(localArr)) localArr.forEach(x => { if (x && x.id && !mergedDeletedIds.includes(x.id)) map.set(x.id, x); });
+                const processItem = (x) => {
+                    if (!x) return;
+                    if (!x.id) x.id = x.txId || ('OLD_' + Math.random().toString(36).substr(2, 9));
+                    if (!merged.deletedIds.includes(x.id)) {
+                        map.set(x.id, x);
+                    }
+                };
+                if (Array.isArray(cloudArr)) cloudArr.forEach(processItem);
+                if (Array.isArray(localArr)) localArr.forEach(processItem);
                 return Array.from(map.values());
             };
 
-            const mergeDebts = (cloudDebts, localDebts) => {
-                const nameMap = new Map();
-                if (Array.isArray(cloudDebts)) { cloudDebts.forEach(p => { if (p && p.name) { nameMap.set(p.name.toLowerCase(), { name: p.name, entries: Array.isArray(p.entries) ? [...p.entries] : [] }); } }); }
-                if (Array.isArray(localDebts)) {
-                    localDebts.forEach(p => {
-                        if (!p || !p.name) return;
-                        const key = p.name.toLowerCase();
-                        if (nameMap.has(key)) {
-                            const person = nameMap.get(key); const entryMap = new Map();
-                            // Cloud entries first (lower priority)
-                            if (Array.isArray(person.entries)) person.entries.forEach(e => { if (e && e.id && !mergedDeletedIds.includes(e.id)) entryMap.set(e.id, e); });
-                            // Local entries second (higher priority)
-                            if (Array.isArray(p.entries)) p.entries.forEach(e => { if (e && e.id && !mergedDeletedIds.includes(e.id)) entryMap.set(e.id, e); });
-                            person.entries = Array.from(entryMap.values());
-                        } else { nameMap.set(key, { name: p.name, entries: Array.isArray(p.entries) ? [...p.entries] : [] }); }
-                    });
-                }
-                return Array.from(nameMap.values());
-            };
-
-            // Start with local db as base (preserves all local data), then apply cloud on top
-            const merged = Object.assign(FRESH_DB(), db);
-
-            // Merge arrays (union of both cloud and local, local wins on conflict)
             merged.transactions = mergeById(cloud.transactions, db.transactions);
             merged.dailyMoney   = mergeById(cloud.dailyMoney,   db.dailyMoney);
             merged.expenses     = mergeById(cloud.expenses,     db.expenses);
             merged.reminders    = mergeById(cloud.reminders,    db.reminders);
-            merged.debts        = mergeDebts(cloud.debts,       db.debts);
 
-            // Opening: keep whichever is more recent
-            const cloudOpDate = cloud.opening && cloud.opening.date ? new Date(cloud.opening.date) : null;
-            const localOpDate = db.opening && db.opening.date ? new Date(db.opening.date) : null;
-            if (cloudOpDate && localOpDate) {
-                merged.opening = cloudOpDate > localOpDate ? cloud.opening : db.opening;
-            } else if (cloudOpDate) {
-                merged.opening = cloud.opening;
-            } else if (localOpDate) {
-                merged.opening = db.opening;
+            const mergeDebts = (cloudDebts, localDebts) => {
+                const nameMap = new Map();
+                const addPerson = (p) => {
+                    if (!p || !p.name) return;
+                    const key = p.name.toLowerCase();
+                    if (!nameMap.has(key)) nameMap.set(key, { name: p.name, entries: [] });
+                    const person = nameMap.get(key);
+                    const entryMap = new Map();
+                    
+                    person.entries.forEach(e => entryMap.set(e.id, e));
+                    if (Array.isArray(p.entries)) {
+                        p.entries.forEach(e => {
+                            if (e) {
+                                if (!e.id) e.id = 'OLD_' + Math.random().toString(36).substr(2, 9);
+                                if (!merged.deletedIds.includes(e.id)) entryMap.set(e.id, e);
+                            }
+                        });
+                    }
+                    person.entries = Array.from(entryMap.values());
+                };
+                if (Array.isArray(cloudDebts)) cloudDebts.forEach(addPerson);
+                if (Array.isArray(localDebts)) localDebts.forEach(addPerson);
+                return Array.from(nameMap.values());
+            };
+
+            merged.debts = mergeDebts(cloud.debts, db.debts);
+            
+            const mergeSubFolders = (cloudSf, localSf) => {
+                const map = new Map();
+                const processSf = (x) => {
+                    if (!x) return;
+                    if (!x.id) x.id = 'SF_' + Math.random().toString(36).substr(2, 9);
+                    map.set(x.id, x);
+                };
+                if (Array.isArray(cloudSf)) cloudSf.forEach(processSf);
+                if (Array.isArray(localSf)) localSf.forEach(processSf);
+                return Array.from(map.values());
+            };
+            merged.debtSubFolders = mergeSubFolders(cloud.debtSubFolders, db.debtSubFolders);
+
+            if (!merged.opening || merged.opening.date !== db.opening?.date) {
+                if (db.opening && db.opening.date) merged.opening = db.opening;
             }
+            const ohMap = new Map();
+            [...(cloud.openingsHistory||[]), ...(db.openingsHistory||[])].forEach(h => {
+                if(h) ohMap.set(h.date + '_' + h.time, h);
+            });
+            merged.openingsHistory = Array.from(ohMap.values());
+            
+            merged.savedProviders  = [...new Set([...(cloud.savedProviders||[]),  ...(db.savedProviders||[])])];
+            merged.savedDmCategories = [...new Set([...(cloud.savedDmCategories||[]), ...(db.savedDmCategories||[])])];
+            merged.savedCategories = [...new Set([...(cloud.savedCategories||[]), ...(db.savedCategories||[])])];
+            merged.savedDebtNames  = [...new Set([...(cloud.savedDebtNames||[]),  ...(db.savedDebtNames||[])])];
 
-            // Balances: keep local if local has data, else use cloud
-            merged.cashBalance = (db.cashBalance != null && db.cashBalance !== 0) ? db.cashBalance : (cloud.cashBalance || 0);
-
-            // Providers: merge by id, local wins on conflict
             const provMap = {};
             (cloud.providers||[]).forEach(p => { if(p&&p.id) provMap[p.id] = p; });
-            (db.providers||[]).forEach(p => { if(p&&p.id) provMap[p.id] = p; }); // local overwrites cloud
+            (db.providers  ||[]).forEach(p => { if(p&&p.id) provMap[p.id] = p; });
             merged.providers = Object.values(provMap);
 
-            // Opening history: union by date+time key
-            const ohMap = new Map();
-            [...(cloud.openingsHistory||[]), ...(db.openingsHistory||[])].forEach(h => { if(h) ohMap.set(h.date + '_' + h.time, h); });
-            merged.openingsHistory = Array.from(ohMap.values());
-
-            // Saved lists: union
-            merged.savedProviders    = [...new Set([...(cloud.savedProviders||[]),    ...(db.savedProviders||[])])];
-            merged.savedDmCategories = [...new Set([...(cloud.savedDmCategories||[]), ...(db.savedDmCategories||[])])];
-            merged.savedCategories   = [...new Set([...(cloud.savedCategories||[]),   ...(db.savedCategories||[])])];
-            merged.savedDebtNames    = [...new Set([...(cloud.savedDebtNames||[]),    ...(db.savedDebtNames||[])])];
-            merged.debtSubFolders    = mergeById(cloud.debtSubFolders, db.debtSubFolders);
-
-            // Settings: local wins (user's current settings take priority)
-            merged.settings = Object.assign({}, cloud.settings || {}, db.settings || {});
-            // But always keep auth info
-            merged.settings.userEmail  = db.settings.userEmail  || cloud.settings?.userEmail;
-            merged.settings.userId     = db.settings.userId     || cloud.settings?.userId;
-            merged.settings.syncEnabled = true;
-
-            // DeletedIds: union, trimmed
-            merged.deletedIds = mergedDeletedIds;
-            if (merged.deletedIds.length > 2000) merged.deletedIds = merged.deletedIds.slice(-1000);
-
+            merged.settings = { ...(cloud.settings || {}), ...(db.settings || {}) };
+            
             db = merged;
-            dbSave();
-            // Push merged result back to cloud so cloud is also up to date
-            _isDbDirty = true;
-            setTimeout(() => { refreshAll(); pushToCloud(); }, 0);
-        } else if (force) { await pushToCloud(); }
+            
+            if (_isDbDirty) {
+                pushToCloud();
+            } else {
+                dbSave(true);
+            }
+            setTimeout(() => refreshAll(), 0);
+        } else if (force) {
+            await pushToCloud();
+        }
         setSyncStatus('online', t('sync_synced') + new Date().toLocaleTimeString());
-    } catch(e) { setSyncStatus('offline', t('sync_failed') + (navigator.onLine ? 'Server error' : t('sync_no_internet'))); }
+    } catch(e) {
+        console.error(e);
+        setSyncStatus('offline', t('sync_failed') + (navigator.onLine ? 'Server error' : t('sync_no_internet')));
+    }
 }
 
 function setSyncStatus(state, msg) {
