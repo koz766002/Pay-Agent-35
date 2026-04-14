@@ -28,31 +28,21 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 
     <script>
-    // Fast theme restore: try localStorage cache first, then IndexedDB async
     try {
-        const _tc = localStorage.getItem('pay_agent_theme_cache');
-        if (_tc === 'dark') { document.documentElement.dataset.theme = 'dark'; }
-    } catch(e){}
-    // Also restore from IndexedDB asynchronously for accuracy
-    try {
-        const _req = indexedDB.open('pay_agent_db', 1);
-        _req.onsuccess = function(e) {
-            try {
-                const _db = e.target.result;
-                if (!_db.objectStoreNames.contains('kv')) return;
-                const _tx = _db.transaction('kv', 'readonly');
-                const _store = _tx.objectStore('kv');
-                const _get = _store.get('pay_agent_v1');
-                _get.onsuccess = function(ev) {
-                    try {
-                        const _data = ev.target.result;
-                        if (_data && _data.settings && _data.settings.theme === 'dark') {
-                            document.documentElement.dataset.theme = 'dark';
-                        }
-                    } catch(e2){}
-                };
-            } catch(e2){}
-        };
+        const theme = localStorage.getItem('pa_theme');
+        if (theme === 'dark') {
+            document.documentElement.dataset.theme = 'dark';
+        } else if (!theme) {
+            // Fallback check for first load migration
+            const s = localStorage.getItem('pay_agent_v1') || localStorage.getItem('mmf_v3');
+            if (s) {
+                const tdb = JSON.parse(s);
+                if (tdb.settings && tdb.settings.theme === 'dark') {
+                    document.documentElement.dataset.theme = 'dark';
+                    localStorage.setItem('pa_theme', 'dark');
+                }
+            }
+        }
     } catch(e){}
     </script>
 
@@ -1461,6 +1451,59 @@
     </div>
 
 <script>
+// ── INDEXEDDB WRAPPER ──
+const IDB_NAME = 'PayAgentDB';
+const IDB_STORE = 'app_data';
+const IDB_KEY = 'pay_agent_v1';
+
+function initIDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(IDB_NAME, 1);
+        request.onupgradeneeded = (e) => {
+            const idb = e.target.result;
+            if (!idb.objectStoreNames.contains(IDB_STORE)) {
+                idb.createObjectStore(IDB_STORE);
+            }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function idbGet() {
+    const idb = await initIDB();
+    return new Promise((resolve, reject) => {
+        const tx = idb.transaction(IDB_STORE, 'readonly');
+        const store = tx.objectStore(IDB_STORE);
+        const req = store.get(IDB_KEY);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+async function idbSet(data) {
+    const idb = await initIDB();
+    return new Promise((resolve, reject) => {
+        const tx = idb.transaction(IDB_STORE, 'readwrite');
+        const store = tx.objectStore(IDB_STORE);
+        const req = store.put(data, IDB_KEY);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+    });
+}
+
+async function idbRemove() {
+    const idb = await initIDB();
+    return new Promise((resolve, reject) => {
+        const tx = idb.transaction(IDB_STORE, 'readwrite');
+        const store = tx.objectStore(IDB_STORE);
+        const req = store.delete(IDB_KEY);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+    });
+}
+
+
 const DB_KEY = 'pay_agent_v1';
 window._reminderTimers = {};
 let _isDbDirty = false;
@@ -1479,137 +1522,62 @@ const FRESH_DB = () => ({
 
 let db = FRESH_DB();
 
-/* ════════════════════════════════════════════════
-   IndexedDB Storage Engine
-   DB: pay_agent_db  |  Store: kv  |  Key: DB_KEY
-   ════════════════════════════════════════════════ */
-const IDB = (() => {
-    const DB_NAME = 'pay_agent_db';
-    const DB_VER  = 1;
-    const STORE   = 'kv';
-    let _db = null;
-    let _ready = null;
-
-    function open() {
-        if (_ready) return _ready;
-        _ready = new Promise((resolve, reject) => {
-            if (_db) { resolve(_db); return; }
-            const req = indexedDB.open(DB_NAME, DB_VER);
-            req.onupgradeneeded = e => {
-                const d = e.target.result;
-                if (!d.objectStoreNames.contains(STORE)) {
-                    d.createObjectStore(STORE);
-                }
-            };
-            req.onsuccess = e => { _db = e.target.result; resolve(_db); };
-            req.onerror   = e => { reject(e.target.error); };
-        });
-        return _ready;
-    }
-
-    async function get(key) {
-        const d = await open();
-        return new Promise((resolve, reject) => {
-            const tx    = d.transaction(STORE, 'readonly');
-            const store = tx.objectStore(STORE);
-            const req   = store.get(key);
-            req.onsuccess = e => resolve(e.target.result);
-            req.onerror   = e => reject(e.target.error);
-        });
-    }
-
-    async function set(key, value) {
-        const d = await open();
-        return new Promise((resolve, reject) => {
-            const tx    = d.transaction(STORE, 'readwrite');
-            const store = tx.objectStore(STORE);
-            const req   = store.put(value, key);
-            req.onsuccess = () => resolve();
-            req.onerror   = e => reject(e.target.error);
-        });
-    }
-
-    async function remove(key) {
-        const d = await open();
-        return new Promise((resolve, reject) => {
-            const tx    = d.transaction(STORE, 'readwrite');
-            const store = tx.objectStore(STORE);
-            const req   = store.delete(key);
-            req.onsuccess = () => resolve();
-            req.onerror   = e => reject(e.target.error);
-        });
-    }
-
-    return { get, set, remove };
-})();
-
-/* ═══════════════════════════════
-   Save to IndexedDB (async)
-   ═══════════════════════════════ */
-async function _dbSaveLocal() {
+async function _dbSaveLocal() { 
     try {
-        const data = JSON.parse(JSON.stringify(db)); // deep clone to avoid mutation issues
-        await IDB.set(DB_KEY, data);
-        // Keep a tiny theme cache in localStorage for fast first-paint
-        try { localStorage.setItem('pay_agent_theme_cache', data.settings && data.settings.theme === 'dark' ? 'dark' : 'light'); } catch(e) {}
+        await idbSet(db);
+        localStorage.setItem('pa_theme', db.settings.theme);
     } catch(e) {
-        console.error('IndexedDB save failed:', e);
-        toast('Storage save error!');
-    }
+        console.error("Save failed:", e);
+        if (db.deletedIds && db.deletedIds.length > 200) db.deletedIds = db.deletedIds.slice(-50);
+        if (db.notifications && db.notifications.length > 15) db.notifications = db.notifications.slice(0, 15);
+        if (db.openingsHistory && db.openingsHistory.length > 10) db.openingsHistory = db.openingsHistory.slice(0, 10);
+        try { await idbSet(db); } catch(err2) { toast('Storage full! Clear some data.'); }
+    } 
 }
 
-/* ═══════════════════════════════
-   Load from IndexedDB (async)
-   ═══════════════════════════════ */
 async function dbLoad() {
-    try {
-        let parsed = await IDB.get(DB_KEY);
-
-        // Migrate from localStorage if IndexedDB is empty
-        if (!parsed) {
-            try {
-                let ls = localStorage.getItem(DB_KEY);
-                if (!ls) ls = localStorage.getItem('mmf_v3');
-                if (ls) {
-                    parsed = JSON.parse(ls);
-                    // Migrate into IndexedDB and clean up localStorage
-                    await IDB.set(DB_KEY, parsed);
-                    try { localStorage.removeItem(DB_KEY); localStorage.removeItem('mmf_v3'); } catch(e) {}
-                }
-            } catch(e) {}
+    try { 
+        let p = await idbGet();
+        
+        if (!p) {
+            let s = localStorage.getItem(DB_KEY) || localStorage.getItem('mmf_v3');
+            if (s) {
+                p = JSON.parse(s);
+                localStorage.removeItem(DB_KEY);
+                localStorage.removeItem('mmf_v3');
+            }
         }
 
-        if (parsed) {
-            db = Object.assign(FRESH_DB(), parsed);
-            ['savedProviders','savedDmCategories','savedCategories','savedDebtNames','reminders','notifications','debtSubFolders','deletedIds','openingsHistory','dailyMoney','expenses']
-                .forEach(k => { if (!db[k]) db[k] = []; });
-
+        if (p) { 
+            db = Object.assign(FRESH_DB(), p); 
+            ['savedProviders','savedDmCategories','savedCategories','savedDebtNames','reminders','notifications','debtSubFolders','deletedIds','openingsHistory','dailyMoney','expenses'].forEach(k => { if(!db[k]) db[k] = []; });
+            
             if (!db.settings.migrated_to_dm_v5) {
                 if (db.expenses && db.expenses.length > 0 && (!db.dailyMoney || db.dailyMoney.length === 0)) {
                     db.dailyMoney = [...db.expenses];
                     db.expenses = [];
                 }
                 db.settings.migrated_to_dm_v5 = true;
-                await _dbSaveLocal();
+                _dbSaveLocal(); 
             }
 
-            if (!db.smartFill) db.smartFill = {};
-            if (!db.settings.currencyPos) db.settings.currencyPos = 'before';
-            if (db.settings.sound === undefined) db.settings.sound = true;
-            if (db.settings.vibrate === undefined) db.settings.vibrate = true;
-            if (!db.settings.shopName) db.settings.shopName = 'MKT Computer';
-            if (!db.settings.txSortBy) db.settings.txSortBy = 'latest';
-            if (!db.settings.dmSortBy) db.settings.dmSortBy = 'latest';
-            if (!db.settings.expSortBy) db.settings.expSortBy = 'latest';
-            if (!db.settings.debtSortBy) db.settings.debtSortBy = 'latest';
-        }
+            if(!db.smartFill) db.smartFill = {}; 
+            if(!db.settings.currencyPos) db.settings.currencyPos = 'before'; 
+            if(db.settings.sound === undefined) db.settings.sound = true; 
+            if(db.settings.vibrate === undefined) db.settings.vibrate = true; 
+            if(!db.settings.shopName) db.settings.shopName = 'MKT Computer'; 
+            if(!db.settings.txSortBy) db.settings.txSortBy = 'latest'; 
+            if(!db.settings.dmSortBy) db.settings.dmSortBy = 'latest'; 
+            if(!db.settings.expSortBy) db.settings.expSortBy = 'latest'; 
+            if(!db.settings.debtSortBy) db.settings.debtSortBy = 'latest'; 
+        } 
     } catch(e) {
-        console.error('dbLoad error:', e);
+        console.error("Database load error:", e);
     }
 }
 
 function dbSave(skipCloud = false) {
-    _dbSaveLocal(); // async, fire and forget
+    _dbSaveLocal();
     if (!skipCloud) {
         _isDbDirty = true;
         if (isSyncEnabled && currentUser) {
@@ -4952,7 +4920,7 @@ function backupData() {
 function restoreFromFile(ev) {
     const file = ev.target.files[0]; if(!file) return;
     const reader = new FileReader();
-    reader.onload = e => {
+    reader.onload = async e => {
         try {
             let importedData = JSON.parse(e.target.result);
             db = Object.assign(FRESH_DB(), importedData);
@@ -4968,7 +4936,9 @@ function restoreFromFile(ev) {
             }
             
             _isDbDirty = true;
-            dbSave(); refreshAll(); toast('Data restored!');
+            await _dbSaveLocal();
+            dbSave(true); 
+            refreshAll(); toast('Data restored!');
         } catch(err) { 
             toast('Invalid file', 'error'); 
         }
@@ -5173,8 +5143,9 @@ async function doEraseAll() {
     if (textEl) textEl.textContent = (db.settings.lang === 'mm') ? 'ဖျက်နေပါသည်...' : 'Processing...';
     
     try { 
-        await IDB.remove(DB_KEY);
-        try { localStorage.removeItem('pay_agent_theme_cache'); } catch(e) {}
+        await idbRemove();
+        localStorage.removeItem('pa_theme');
+        localStorage.removeItem(DB_KEY);
         if (currentUser) { 
             const sb = getSB(); 
             if (sb) { try { await sb.from('mmf_data').delete().eq('user_id', currentUser.id); } catch(e) {} try { await sb.auth.signOut(); } catch(e) {} } 
@@ -5603,34 +5574,36 @@ function initNetIndicators() {
 }
 
 // ── INITIALIZATION ──
-document.addEventListener("DOMContentLoaded", async () => {
-    await dbLoad(); applySettings(); db.reminders.forEach(r => scheduleReminder(r));
-    isSyncEnabled = !!db.settings.syncEnabled; initNetIndicators(); initSliders();
+document.addEventListener("DOMContentLoaded", () => {
+    dbLoad().then(() => {
+        applySettings(); db.reminders.forEach(r => scheduleReminder(r));
+        isSyncEnabled = !!db.settings.syncEnabled; initNetIndicators(); initSliders();
 
-    const authScreen = document.getElementById('authScreen');
-    if(authScreen) { authScreen.style.display = 'none'; authScreen.style.opacity = '0'; }
+        const authScreen = document.getElementById('authScreen');
+        if(authScreen) { authScreen.style.display = 'none'; authScreen.style.opacity = '0'; }
 
-    if (!db.settings.lock) { 
-        document.getElementById('lock').style.display = 'none'; document.getElementById('appWrap').classList.add('show'); setTimeout(refreshAll, 30); 
-    } else { document.getElementById('lock').style.display = 'flex'; }
-    
-    if (db.settings.userEmail !== null) {
-        setTimeout(async () => {
-            const sb = getSB();
-            if (sb) {
-                try {
-                    const { data } = await sb.auth.getSession();
-                    if (data && data.session && data.session.user) {
-                        currentUser = data.session.user; db.settings.userEmail = currentUser.email; db.settings.userId = currentUser.id; dbSave(true);
-                        if (isSyncEnabled) { await pullFromCloud(); startAutoSync(); }
-                        renderSettingsAccount(); renderSyncStatus(); updateNetIndicators(navigator.onLine ? 'online' : 'offline');
-                    } else {
-                        currentUser = null; isSyncEnabled = false; renderSettingsAccount(); renderSyncStatus(); updateNetIndicators('offline');
-                    }
-                } catch(e) { console.warn('Auth session error:', e); }
-            }
-        }, 1000);
-    } else { renderSettingsAccount(); renderSyncStatus(); }
+        if (!db.settings.lock) { 
+            document.getElementById('lock').style.display = 'none'; document.getElementById('appWrap').classList.add('show'); setTimeout(refreshAll, 30); 
+        } else { document.getElementById('lock').style.display = 'flex'; }
+        
+        if (db.settings.userEmail !== null) {
+            setTimeout(async () => {
+                const sb = getSB();
+                if (sb) {
+                    try {
+                        const { data } = await sb.auth.getSession();
+                        if (data && data.session && data.session.user) {
+                            currentUser = data.session.user; db.settings.userEmail = currentUser.email; db.settings.userId = currentUser.id; dbSave(true);
+                            if (isSyncEnabled) { await pullFromCloud(); startAutoSync(); }
+                            renderSettingsAccount(); renderSyncStatus(); updateNetIndicators(navigator.onLine ? 'online' : 'offline');
+                        } else {
+                            currentUser = null; isSyncEnabled = false; renderSettingsAccount(); renderSyncStatus(); updateNetIndicators('offline');
+                        }
+                    } catch(e) { console.warn('Auth session error:', e); }
+                }
+            }, 1000);
+        } else { renderSettingsAccount(); renderSyncStatus(); }
+    });
 });
 
 window.addEventListener('load', () => {
