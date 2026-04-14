@@ -10,7 +10,7 @@
     <meta name="theme-color" content="#3B5BDB">
     <meta name="application-name" content="Pay Agent">
     <meta name="description" content="Personal finance tracker with cloud sync and offline support.">
-    <meta name="version" content="8.1.7">
+    <meta name="version" content="8.1.8">
     <title>Pay Agent — Pro Cash Manager</title>
     
     <link rel="manifest" href="/manifest.json">
@@ -29,11 +29,18 @@
 
     <script>
     try {
-        const s = localStorage.getItem('pay_agent_v1') || localStorage.getItem('mmf_v3');
-        if (s) {
-            const db = JSON.parse(s);
-            if (db.settings && db.settings.theme === 'dark') {
-                document.documentElement.dataset.theme = 'dark';
+        const theme = localStorage.getItem('pa_theme');
+        if (theme === 'dark') {
+            document.documentElement.dataset.theme = 'dark';
+        } else if (!theme) {
+            // Fallback check for first load migration
+            const s = localStorage.getItem('pay_agent_v1') || localStorage.getItem('mmf_v3');
+            if (s) {
+                const tdb = JSON.parse(s);
+                if (tdb.settings && tdb.settings.theme === 'dark') {
+                    document.documentElement.dataset.theme = 'dark';
+                    localStorage.setItem('pa_theme', 'dark');
+                }
             }
         }
     } catch(e){}
@@ -147,6 +154,18 @@
         .hero::before { content:''; position:absolute; top:-60px; right:-40px; width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,0.07); } 
         .hero::after { content:''; position:absolute; bottom:-80px; left:-20px; width:240px; height:240px; border-radius:50%; background:rgba(255,255,255,0.04); } 
         .hero-grid { position:absolute; inset:0; background-image:repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(255,255,255,0.025) 28px,rgba(255,255,255,0.025) 29px),repeating-linear-gradient(90deg,transparent,transparent 28px,rgba(255,255,255,0.025) 28px,rgba(255,255,255,0.025) 29px); z-index:0; pointer-events:none; } 
+        
+        /* Seasonal Decor Animations */
+        .seasonal-decor { position:absolute; font-size:2.5rem; opacity:0.25; pointer-events:none; z-index:0; }
+        .decor-top-right { top:10px; right:15px; }
+        .decor-bottom-left { bottom:10px; left:15px; }
+        @keyframes floatAnim { 0%, 100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+        @keyframes swingAnim { 0%, 100% { transform:rotate(-10deg); } 50% { transform:rotate(10deg); } }
+        @keyframes pulseAnim { 0%, 100% { transform:scale(1); opacity:0.2; } 50% { transform:scale(1.1); opacity:0.35; } }
+        .seasonal-decor.float { animation:floatAnim 3s ease-in-out infinite; }
+        .seasonal-decor.swing { animation:swingAnim 4s ease-in-out infinite; transform-origin:top center; }
+        .seasonal-decor.pulse { animation:pulseAnim 3s ease-in-out infinite; }
+
         .hero-lbl { font-size:0.75rem; opacity:.8; font-weight:500; margin-bottom:4px; position:relative; z-index:1; letter-spacing:0.4px; text-transform:uppercase; } 
         .hero-amt { font-size:calc(2.4rem * var(--fs-scale)); font-weight:800; letter-spacing:-1.5px; margin-bottom:20px; position:relative; z-index:1; font-family:'Inter',sans-serif; text-shadow:0 2px 8px rgba(0,0,0,0.1); cursor:default; user-select:none; } 
         .hero-sub { display:flex; gap:10px; position:relative; z-index:1; } 
@@ -154,25 +173,6 @@
         .hsub-l { font-size:0.65rem; opacity:.8; margin-bottom:4px; font-weight:500; letter-spacing:0.2px; } 
         .hsub-v { font-size:calc(0.95rem * var(--fs-scale)); font-weight:700; font-family:'Inter',sans-serif; } 
         .hero-date { font-size:0.7rem; opacity:.65; margin-top:12px; position:relative; z-index:1; }
-
-        /* ════ SEASONAL DECORATIONS ════ */
-        .hero-decor { position: absolute; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-        .decor-item { position: absolute; opacity: 0.45; user-select: none; animation: floatDecor 3s ease-in-out infinite alternate; }
-        .decor-item.fast { animation-duration: 2s; }
-        .decor-item.slow { animation-duration: 4s; }
-        @keyframes floatDecor { from { transform: translateY(0px) rotate(0deg); } to { transform: translateY(10px) rotate(8deg); } }
-        @keyframes floatUp { 0% { transform: translateY(20px) scale(0.9); opacity: 0; } 50% { opacity: 0.5; } 100% { transform: translateY(-30px) scale(1.1); opacity: 0; } }
-        @keyframes petalFall { 0% { transform: translateY(-10px) translateX(0px) rotate(0deg); opacity:0; } 10% { opacity:0.7; } 90% { opacity:0.5; } 100% { transform: translateY(120px) translateX(20px) rotate(360deg); opacity:0; } }
-        @keyframes waterFall { 0% { transform: translateY(-5px) scaleY(0.8); opacity:0; } 15% { opacity:0.7; } 85% { opacity:0.4; } 100% { transform: translateY(130px) scaleY(1.2); opacity:0; } }
-        @keyframes snowFall { 0% { transform: translateY(-10px) translateX(0) rotate(0deg); opacity:0; } 20% { opacity:0.8; } 80% { opacity:0.5; } 100% { transform: translateY(130px) translateX(15px) rotate(180deg); opacity:0; } }
-        @keyframes lanternFloat { 0%,100%{ transform:translateY(0px) rotate(-3deg); } 50%{ transform:translateY(-12px) rotate(3deg); } }
-        @keyframes sparkle { 0%,100%{ opacity:0.2; transform:scale(0.8); } 50%{ opacity:0.9; transform:scale(1.2); } }
-        @keyframes fireSway { 0%,100%{ transform:scaleX(1) translateY(0); } 50%{ transform:scaleX(0.85) translateY(-3px); } }
-        .decor-petal-animate { animation: petalFall linear infinite; }
-        .decor-water-animate { animation: waterFall linear infinite; }
-        .decor-snow-animate { animation: snowFall linear infinite; }
-        .decor-lantern-animate { animation: lanternFloat ease-in-out infinite; }
-        .decor-sparkle-animate { animation: sparkle ease-in-out infinite; }
 
         .sgrid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; } 
         .scard { background:var(--surface); border-radius:var(--r2); padding:14px 16px; border:1px solid var(--border); position:relative; overflow:hidden; cursor:pointer; box-shadow:var(--shadow2); transition:transform 0.15s cubic-bezier(0.4,0,0.2,1), box-shadow 0.15s; } 
@@ -206,7 +206,11 @@
         .sh-btn-sec:active { transform:scale(0.95); background:var(--surface3); }
 
         .tgroup-date { font-size:0.7rem; color:var(--text3); font-weight:700; text-transform:uppercase; letter-spacing:.8px; padding:16px 0 8px; } 
-        
+        .tgroup-header { display: flex; justify-content: space-between; align-items: center; cursor: pointer; padding: 12px 10px; background: var(--surface2); border-radius: var(--r4); margin-bottom: 8px; user-select: none; border: 1px solid var(--border); transition: var(--transition); }
+        .tgroup-header:active { background: var(--surface3); transform: scale(0.98); }
+        .tgroup-header .chevron { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); stroke: var(--text3); }
+        .tgroup-header .chevron.open { transform: rotate(90deg); }
+
         .titem { background:var(--surface); border-radius:0 var(--r2) var(--r2) 0; padding:10px 14px; display:flex; align-items:center; gap:12px; margin-bottom:8px; border:1px solid var(--border); border-left-width:4px; border-left-style:solid; cursor:pointer; transition:transform 0.15s cubic-bezier(0.4,0,0.2,1), background 0.15s; position:relative; overflow:hidden; user-select:none; box-shadow:0 1px 4px rgba(0,0,0,0.03); } 
         .titem:active { transform:scale(.97); background:var(--surface2); } 
         .titem.open .tactions { transform:translateX(0); }
@@ -283,8 +287,10 @@
         .obanner-t { font-size:0.9rem; font-weight:700; color:var(--green); } 
         .obanner-s { font-size:0.75rem; color:var(--text3); margin-top:2px; }
 
+        /* Debts Folders & Profiles */
+        .debt-subfolder-hdr { background: #ffffff !important; border-left: 5px solid #0D9E6C !important; border-bottom: 1px solid var(--border) !important; }    
         .dprof { background:var(--surface); border-radius:var(--r2); padding:0; margin-bottom:10px; border:1px solid var(--border); overflow:visible; box-shadow:var(--shadow2); } 
-        .dprof .titem { border-left:4px solid var(--border2); border-radius:0 var(--r2) 0 0; margin-bottom:0; border-top:none; border-right:none; border-bottom:1px solid var(--border); } 
+        .dprof > .titem:first-child { border-left: 5px solid var(--accent) !important; border-radius:0 var(--r2) 0 0; margin-bottom:0; border-top:none; border-right:none; border-bottom:1px solid var(--border); } 
         .dprof > div[id^="dh_"] .titem { padding:10px 12px; border-radius:0 var(--r2) var(--r2) 0; } 
         .dprof > div[id^="dh_"] .tname { font-size:0.85rem; } 
         .dprof > div[id^="dh_"] .tsub { font-size:0.7rem; } 
@@ -945,6 +951,36 @@
 
     <!-- ════ MODALS & OVERLAYS ════ -->
 
+    <!-- CLEAR SPECIFIC DATA MODAL -->
+    <div class="overlay" id="m-clear-specific">
+        <div class="sheet">
+            <div class="mhandle"></div>
+            <div class="mtitle" data-i18n="clear_specific">Clear Specific Data</div>
+            <p style="font-size:0.8rem;color:var(--text2);margin-bottom:18px;" data-i18n="clear_specific_sub">Select which tab and month you want to permanently delete.</p>
+            
+            <div class="fgrp">
+                <label class="flbl" data-i18n="select_tab">Select Tab</label>
+                <select class="fselect" id="clear-tab-select">
+                    <option value="all" data-i18n="all_tabs">All Tabs</option>
+                    <option value="tx" data-i18n="nav_tx">Transactions</option>
+                    <option value="dm" data-i18n="nav_dm">Daily Money</option>
+                    <option value="exp" data-i18n="nav_exp">Expenses</option>
+                    <option value="debts" data-i18n="nav_debts">Debts</option>
+                </select>
+            </div>
+            
+            <div class="fgrp">
+                <label class="flbl" data-i18n="select_month">Select Month</label>
+                <select class="fselect" id="clear-month-select">
+                    <!-- Populated by JS -->
+                </select>
+            </div>
+            
+            <button class="btn-p" style="background:var(--red); box-shadow:0 4px 14px rgba(224,62,62,0.25)" onclick="confirmClearSpecific()" data-i18n="confirm_delete">Delete Selected Data</button>
+            <button class="btn-s" onclick="closeM('m-clear-specific')" data-i18n="cancel">Cancel</button>
+        </div>
+    </div>
+
     <!-- DEBT BREAKDOWN MODAL -->
     <div class="overlay" id="m-debt-breakdown">
         <div class="sheet" style="height: 80vh;">
@@ -1315,6 +1351,12 @@
                     <div class="srow-body"><div class="srow-title" id="st-opt-data" style="color:var(--amber)" data-i18n="optimize_data">Optimize Cache</div><div class="srow-sub" id="st-opt-sub" data-i18n="optimize_data_sub">Free up space, keep main data</div></div>
                     <span class="srow-right" style="color:var(--amber)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
                 </div>
+
+                <div class="srow" onclick="openClearSpecificModal()" style="border-color:rgba(224,62,62,.2)">
+                    <span class="srow-icon" style="background:var(--redl);color:var(--red)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg></span>
+                    <div class="srow-body"><div class="srow-title" style="color:var(--red)" data-i18n="clear_specific">Clear Specific Data</div><div class="srow-sub" data-i18n="clear_specific_sub">Delete by Tab & Month</div></div>
+                    <span class="srow-right" style="color:var(--red)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                </div>
                 
                 <div class="srow" onclick="clearAllData()" style="border-color:rgba(224,62,62,.2)">
                     <span class="srow-icon" style="background:var(--redl);color:var(--red)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></span>
@@ -1326,7 +1368,7 @@
                     <div style="width:48px;height:48px;background:var(--accentg);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px; box-shadow: 0 4px 12px rgba(59,91,219,0.25)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
                     <div style="font-weight:800;font-size:1.05rem">Pay Agent</div>
                     <div style="font-size:0.75rem;color:var(--text2);margin-top:4px">MKT Computer & Printing Service</div>
-                    <div style="margin-top:8px"><span class="version-badge">Version - 8.1.7 - PWA</span></div>
+                    <div style="margin-top:8px"><span class="version-badge">Version - 8.1.8 - PWA</span></div>
                 </div>
             </div>
         </div>
@@ -1409,6 +1451,59 @@
     </div>
 
 <script>
+// ── INDEXEDDB WRAPPER ──
+const IDB_NAME = 'PayAgentDB';
+const IDB_STORE = 'app_data';
+const IDB_KEY = 'pay_agent_v1';
+
+function initIDB() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(IDB_NAME, 1);
+        request.onupgradeneeded = (e) => {
+            const idb = e.target.result;
+            if (!idb.objectStoreNames.contains(IDB_STORE)) {
+                idb.createObjectStore(IDB_STORE);
+            }
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function idbGet() {
+    const idb = await initIDB();
+    return new Promise((resolve, reject) => {
+        const tx = idb.transaction(IDB_STORE, 'readonly');
+        const store = tx.objectStore(IDB_STORE);
+        const req = store.get(IDB_KEY);
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+}
+
+async function idbSet(data) {
+    const idb = await initIDB();
+    return new Promise((resolve, reject) => {
+        const tx = idb.transaction(IDB_STORE, 'readwrite');
+        const store = tx.objectStore(IDB_STORE);
+        const req = store.put(data, IDB_KEY);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+    });
+}
+
+async function idbRemove() {
+    const idb = await initIDB();
+    return new Promise((resolve, reject) => {
+        const tx = idb.transaction(IDB_STORE, 'readwrite');
+        const store = tx.objectStore(IDB_STORE);
+        const req = store.delete(IDB_KEY);
+        req.onsuccess = () => resolve();
+        req.onerror = () => reject(req.error);
+    });
+}
+
+
 const DB_KEY = 'pay_agent_v1';
 window._reminderTimers = {};
 let _isDbDirty = false;
@@ -1427,32 +1522,33 @@ const FRESH_DB = () => ({
 
 let db = FRESH_DB();
 
-function _dbSaveLocal() { 
+async function _dbSaveLocal() { 
     try {
-        localStorage.setItem(DB_KEY, JSON.stringify(db));
+        await idbSet(db);
+        localStorage.setItem('pa_theme', db.settings.theme);
     } catch(e) {
         console.error("Save failed:", e);
-        if(e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED' || e.code === 22) {
-            if (db.deletedIds && db.deletedIds.length > 200) db.deletedIds = db.deletedIds.slice(-50);
-            if (db.notifications && db.notifications.length > 15) db.notifications = db.notifications.slice(0, 15);
-            if (db.openingsHistory && db.openingsHistory.length > 10) db.openingsHistory = db.openingsHistory.slice(0, 10);
-            try { localStorage.setItem(DB_KEY, JSON.stringify(db)); } catch(err2) { toast('Storage full! Clear some data.'); }
-        }
+        if (db.deletedIds && db.deletedIds.length > 200) db.deletedIds = db.deletedIds.slice(-50);
+        if (db.notifications && db.notifications.length > 15) db.notifications = db.notifications.slice(0, 15);
+        if (db.openingsHistory && db.openingsHistory.length > 10) db.openingsHistory = db.openingsHistory.slice(0, 10);
+        try { await idbSet(db); } catch(err2) { toast('Storage full! Clear some data.'); }
     } 
 }
 
-function dbLoad() {
+async function dbLoad() {
     try { 
-        let s = localStorage.getItem(DB_KEY);
-        if (!s) {
-            s = localStorage.getItem('mmf_v3');
+        let p = await idbGet();
+        
+        if (!p) {
+            let s = localStorage.getItem(DB_KEY) || localStorage.getItem('mmf_v3');
             if (s) {
-                localStorage.setItem(DB_KEY, s);
+                p = JSON.parse(s);
+                localStorage.removeItem(DB_KEY);
+                localStorage.removeItem('mmf_v3');
             }
         }
 
-        if (s) { 
-            const p = JSON.parse(s); 
+        if (p) { 
             db = Object.assign(FRESH_DB(), p); 
             ['savedProviders','savedDmCategories','savedCategories','savedDebtNames','reminders','notifications','debtSubFolders','deletedIds','openingsHistory','dailyMoney','expenses'].forEach(k => { if(!db[k]) db[k] = []; });
             
@@ -1475,7 +1571,9 @@ function dbLoad() {
             if(!db.settings.expSortBy) db.settings.expSortBy = 'latest'; 
             if(!db.settings.debtSortBy) db.settings.debtSortBy = 'latest'; 
         } 
-    } catch(e) {}
+    } catch(e) {
+        console.error("Database load error:", e);
+    }
 }
 
 function dbSave(skipCloud = false) {
@@ -1978,7 +2076,9 @@ const I18N = {
     app_updated: 'App updated! Reload for latest.',
     removed_msg: 'Removed',
     report_downloaded: 'Report downloaded (open in browser to print)',
-    backup_downloaded: 'Backup downloaded!'
+    backup_downloaded: 'Backup downloaded!', clear_specific: 'Clear Specific Data',
+    clear_specific_sub: 'Delete by Tab & Month', select_tab: 'Select Tab', select_month: 'Select Month',
+    all_tabs: 'All Tabs', all_months: 'All Months'
   },
   mm: {
     nav_home:'ပင်မ', nav_tx:'ငွေပေး/ယူ', nav_dm:'နေ့စဉ်ငွေစာရင်း', nav_exp:'အသုံးစရိတ်', nav_debts:'အကြွေး', nav_reports:'အစီရင်ခံ',
@@ -2079,7 +2179,9 @@ const I18N = {
     app_updated: 'App အပ်ဒိတ်ပြီးပြီ! ပြန်လည်ဖွင့်ပါ။',
     removed_msg: 'ဖယ်ရှားလိုက်ပါပြီ',
     report_downloaded: 'အစီရင်ခံ ဒေါင်းလုပ်ပြီးပြီ (ဘရောက်ဇာတွင် ဖွင့်ပြီး ပုံနှိပ်ပါ)',
-    backup_downloaded: 'Backup ဒေါင်းလုပ်ပြီးပြီ!'
+    backup_downloaded: 'Backup ဒေါင်းလုပ်ပြီးပြီ!', clear_specific: 'သီးသန့် ဒေတာဖျက်မည်',
+    clear_specific_sub: 'Tab နှင့် လအလိုက် ရွေးချယ်ဖျက်ပစ်ပါ', select_tab: 'Tab ရွေးပါ', select_month: 'လရွေးပါ',
+    all_tabs: 'Tab အားလုံး', all_months: 'လအားလုံး'
   }
 };
 
@@ -2135,24 +2237,22 @@ function applyLang() {
     document.querySelectorAll('#m-tx .flbl').forEach((l,i) => { if(tlk[i]) l.textContent = t(tlk[i]); }); 
     const sTx = document.querySelector('#m-tx .btn-p'); if(sTx) sTx.textContent = t('save_transaction');
     
-    // For DM Modal UI syncs
     const mDmTB = document.querySelectorAll('#m-dm .ttog:first-of-type .tbtn'); 
     if(mDmTB[0]) mDmTB[0].textContent = t('outcome_btn'); 
     if(mDmTB[1]) mDmTB[1].textContent = t('income_btn'); 
     const mDmSB = document.querySelectorAll('#m-dm .ttog:last-of-type .tbtn'); 
-    if(mDmSB[0]) mDmSB[0].textContent = t('outcome_btn'); 
-    if(mDmSB[1]) mDmSB[1].textContent = t('income_btn'); 
+    if(mDmSB[0]) mDmSB[0].textContent = t('emoney_btn'); 
+    if(mDmSB[1]) mDmSB[1].textContent = t('cash_btn'); 
     const dmlk = ['type_label','category_label','amount_label','payment_source','description_label','date_label']; 
     document.querySelectorAll('#m-dm .flbl').forEach((l,i) => { if(dmlk[i]) l.textContent = t(dmlk[i]); }); 
     const sDmBtn = document.querySelector('#m-dm .btn-p'); if(sDmBtn) sDmBtn.textContent = t('save');
 
-    // For EXP Modal UI syncs
     const mExpTB = document.querySelectorAll('#m-exp .ttog:first-of-type .tbtn'); 
     if(mExpTB[0]) mExpTB[0].textContent = t('expense_btn'); 
     if(mExpTB[1]) mExpTB[1].textContent = t('income_btn'); 
     const mExpSB = document.querySelectorAll('#m-exp .ttog:last-of-type .tbtn'); 
-    if(mExpSB[0]) mExpSB[0].textContent = t('exp_source_btn'); 
-    if(mExpSB[1]) mExpSB[1].textContent = t('inc_source_btn'); 
+    if(mExpSB[0]) mExpSB[0].textContent = t('emoney_btn'); 
+    if(mExpSB[1]) mExpSB[1].textContent = t('cash_btn'); 
     const explk = ['type_label','category_label','amount_label','payment_source','description_label','date_label']; 
     document.querySelectorAll('#m-exp .flbl').forEach((l,i) => { if(explk[i]) l.textContent = t(explk[i]); }); 
     const sExpBtn = document.querySelector('#m-exp .btn-p'); if(sExpBtn) sExpBtn.textContent = t('save');
@@ -2842,9 +2942,8 @@ function updateSeasonalDecorations() {
     const hero = document.querySelector('.hero');
     if (!hero) return;
 
-    const existingDecor = document.getElementById('hero-decor-layer');
-    if (existingDecor) existingDecor.remove();
-
+    // Clean up previous emoji spans
+    document.querySelectorAll('.seasonal-decor').forEach(el => el.remove());
     // Reset hero gradient to default first
     document.documentElement.style.setProperty('--hero-bg', 'linear-gradient(135deg,#3B5BDB 0%,#7048E8 60%,#9B59B6 100%)');
 
@@ -2853,7 +2952,6 @@ function updateSeasonalDecorations() {
     const mon = today.getMonth() + 1;
     const day = today.getDate();
 
-    // ══════════════════════════════════════════════════════
     // Chinese New Year approximate dates (lunar ~late Jan/Feb)
     const chineseNYDates = {
         2024: { month: 2, date: 10 }, 2025: { month: 1, date: 29 },
@@ -2876,40 +2974,27 @@ function updateSeasonalDecorations() {
 
     // ════ ALL HOLIDAYS LIST ════
     const holidays = [
-        // ── ဇန်နဝါရီ (JANUARY) ──
-        { id: 'newyear',         month: 1,  date: 1                          }, // International New Year
-        { id: 'karen_newyear',   month: 1,  date: 14                         }, // ကရင်နှစ်သစ်
-        // ── ဖေဖော်ဝါရီ (FEBRUARY) ──
-        { id: 'union_day',       month: 2,  date: 12                         }, // ပြည်ထောင်စုနေ့
-        { id: 'valentines',      month: 2,  date: 14                         }, // Valentine's Day
-        // ── မတ် (MARCH) ──
-        { id: 'tabaung',         month: 3,  date: 6                          }, // တပေါင်းပွဲ
-        // ── ဧပြီ (APRIL) ──
-        { id: 'thingyan',        month: 4,  date: 14                         }, // သင်္ကြန် (Apr 13–16)
-        { id: 'myanmar_newyear', month: 4,  date: 17                         }, // မြန်မာနှစ်သစ်
-        // ── မေ (MAY) ──
-        { id: 'workers_day',     month: 5,  date: 1                          }, // အလုပ်သမားနေ့
-        { id: 'kasone',          month: 5,  date: 15                         }, // ကဆုန်ညောင်ရေသောက် (approx)
-        // ── ဇွန် (JUNE) ──
-        { id: 'waso_begin',      month: 7,  date: 10                         }, // ဝါဆိုပွဲ (approx)
-        // ── ဇူလိုင် (JULY) ──
-        { id: 'martyrs_day',     month: 7,  date: 19                         }, // အာဇာနည်နေ့
-        // ── ဩဂုတ် (AUGUST) ──
-        { id: 'dhamma_day',      month: 8,  date: 1                          }, // ဓမ္မပူဇာနေ့
-        // ── စက်တင်ဘာ (SEPTEMBER) ──
-        { id: 'waso_end',        month: 9,  date: 15                         }, // ဝါကြွတ်
-        // ── အောက်တိုဘာ (OCTOBER) ──
-        { id: 'thadingyut',      month: 10, date: 17                         }, // သီတင်းကျွတ်
-        { id: 'halloween',       month: 10, date: 31                         }, // Halloween
-        // ── နိုဝင်ဘာ (NOVEMBER) ──
-        { id: 'tazaungdaing',    month: 11, date: 15                         }, // တန်ဆောင်တိုင်
-        { id: 'national_day',    month: 12, date: 10                         }, // အမျိုးသားနေ့
-        // ── ဒီဇင်ဘာ (DECEMBER) ──
-        { id: 'christmas',       month: 12, date: 25                         }, // ခရစ္စမတ်
-        { id: 'new_year_eve',    month: 12, date: 31                         }, // နှစ်ကုန်ညပွဲ
+        { id: 'newyear',         month: 1,  date: 1  }, 
+        { id: 'karen_newyear',   month: 1,  date: 14 }, 
+        { id: 'union_day',       month: 2,  date: 12 }, 
+        { id: 'valentines',      month: 2,  date: 14 }, 
+        { id: 'tabaung',         month: 3,  date: 6  }, 
+        { id: 'thingyan',        month: 4,  date: 14 }, 
+        { id: 'myanmar_newyear', month: 4,  date: 17 }, 
+        { id: 'workers_day',     month: 5,  date: 1  }, 
+        { id: 'kasone',          month: 5,  date: 15 }, 
+        { id: 'waso_begin',      month: 7,  date: 10 }, 
+        { id: 'martyrs_day',     month: 7,  date: 19 }, 
+        { id: 'dhamma_day',      month: 8,  date: 1  }, 
+        { id: 'waso_end',        month: 9,  date: 15 }, 
+        { id: 'thadingyut',      month: 10, date: 17 }, 
+        { id: 'halloween',       month: 10, date: 31 }, 
+        { id: 'tazaungdaing',    month: 11, date: 15 }, 
+        { id: 'national_day',    month: 12, date: 10 }, 
+        { id: 'christmas',       month: 12, date: 25 }, 
+        { id: 'new_year_eve',    month: 12, date: 31 }, 
     ];
 
-    // Add dynamic lunar holidays
     if (chineseNYDates[yr]) holidays.push({ id: 'chinese_ny', month: chineseNYDates[yr].month, date: chineseNYDates[yr].date });
     if (eidFitrDates[yr])   holidays.push({ id: 'eid_fitr',   month: eidFitrDates[yr].month,   date: eidFitrDates[yr].date   });
     if (deepavaliDates[yr]) holidays.push({ id: 'diwali',     month: deepavaliDates[yr].month,  date: deepavaliDates[yr].date });
@@ -2923,560 +3008,48 @@ function updateSeasonalDecorations() {
 
     if (!activeHoliday) return;
 
-    // ════ HERO GRADIENT THEMES PER HOLIDAY ════
-    const heroGradients = {
-        'thingyan':        'linear-gradient(135deg, #1a6b9a 0%, #0d9e6c 50%, #1a8a7a 100%)',
-        'myanmar_newyear': 'linear-gradient(135deg, #D4790A 0%, #E8940A 50%, #C85E00 100%)',
-        'newyear':         'linear-gradient(135deg, #1a1a3e 0%, #2d1b6e 50%, #4a0080 100%)',
-        'new_year_eve':    'linear-gradient(135deg, #0a0a2e 0%, #1a0050 50%, #2d0060 100%)',
-        'karen_newyear':   'linear-gradient(135deg, #c0392b 0%, #e74c3c 50%, #8e44ad 100%)',
-        'union_day':       'linear-gradient(135deg, #2c5f2e 0%, #1a6b2a 50%, #c0392b 100%)',
-        'valentines':      'linear-gradient(135deg, #c0392b 0%, #e91e63 50%, #ad1457 100%)',
-        'tabaung':         'linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #A0522D 100%)',
-        'workers_day':     'linear-gradient(135deg, #b71c1c 0%, #c62828 50%, #1565c0 100%)',
-        'kasone':          'linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #388e3c 100%)',
-        'waso_begin':      'linear-gradient(135deg, #4a148c 0%, #6a1b9a 50%, #7b1fa2 100%)',
-        'martyrs_day':     'linear-gradient(135deg, #1a1a2e 0%, #3d1a1a 50%, #5d2222 100%)',
-        'dhamma_day':      'linear-gradient(135deg, #4a148c 0%, #880e4f 50%, #bf360c 100%)',
-        'waso_end':        'linear-gradient(135deg, #e65100 0%, #bf360c 50%, #4e342e 100%)',
-        'thadingyut':      'linear-gradient(135deg, #f57f17 0%, #e65100 50%, #bf360c 100%)',
-        'tazaungdaing':    'linear-gradient(135deg, #e65100 0%, #6a1b9a 50%, #880e4f 100%)',
-        'national_day':    'linear-gradient(135deg, #1a237e 0%, #283593 50%, #c62828 100%)',
-        'christmas':       'linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #b71c1c 100%)',
-        'halloween':       'linear-gradient(135deg, #4a0000 0%, #7f3f00 50%, #1a0030 100%)',
-        'chinese_ny':      'linear-gradient(135deg, #b71c1c 0%, #c62828 50%, #f9a825 100%)',
-        'eid_fitr':        'linear-gradient(135deg, #1a3c2e 0%, #1b5e20 50%, #004d40 100%)',
-        'diwali':          'linear-gradient(135deg, #e65100 0%, #f57f17 50%, #6a1b9a 100%)',
+    const decorations = {
+        'thingyan':        { bg: 'linear-gradient(135deg, #1a6b9a 0%, #0d9e6c 50%, #1a8a7a 100%)', emojis: ['💦', '🌸'] },
+        'myanmar_newyear': { bg: 'linear-gradient(135deg, #D4790A 0%, #E8940A 50%, #C85E00 100%)', emojis: ['☀️', '🙏'] },
+        'newyear':         { bg: 'linear-gradient(135deg, #1a1a3e 0%, #2d1b6e 50%, #4a0080 100%)', emojis: ['🎆', '✨'] },
+        'new_year_eve':    { bg: 'linear-gradient(135deg, #0a0a2e 0%, #1a0050 50%, #2d0060 100%)', emojis: ['🥂', '🎇'] },
+        'karen_newyear':   { bg: 'linear-gradient(135deg, #c0392b 0%, #e74c3c 50%, #8e44ad 100%)', emojis: ['🥁', '🌾'] },
+        'union_day':       { bg: 'linear-gradient(135deg, #2c5f2e 0%, #1a6b2a 50%, #c0392b 100%)', emojis: ['🇲🇲', '🕊️'] },
+        'valentines':      { bg: 'linear-gradient(135deg, #c0392b 0%, #e91e63 50%, #ad1457 100%)', emojis: ['❤️', '🌹'] },
+        'tabaung':         { bg: 'linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #A0522D 100%)', emojis: ['🏜️', '🧘'] },
+        'workers_day':     { bg: 'linear-gradient(135deg, #b71c1c 0%, #c62828 50%, #1565c0 100%)', emojis: ['🛠️', '💪'] },
+        'kasone':          { bg: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #388e3c 100%)', emojis: ['🌳', '💧'] },
+        'waso_begin':      { bg: 'linear-gradient(135deg, #4a148c 0%, #6a1b9a 50%, #7b1fa2 100%)', emojis: ['🙏', '🕯️'] },
+        'martyrs_day':     { bg: 'linear-gradient(135deg, #1a1a2e 0%, #3d1a1a 50%, #5d2222 100%)', emojis: ['🥀', '🇲🇲'] },
+        'dhamma_day':      { bg: 'linear-gradient(135deg, #4a148c 0%, #880e4f 50%, #bf360c 100%)', emojis: ['☸️', '🌸'] },
+        'waso_end':        { bg: 'linear-gradient(135deg, #e65100 0%, #bf360c 50%, #4e342e 100%)', emojis: ['🌕', '🙏'] },
+        'thadingyut':      { bg: 'linear-gradient(135deg, #f57f17 0%, #e65100 50%, #bf360c 100%)', emojis: ['🏮', '✨'] },
+        'tazaungdaing':    { bg: 'linear-gradient(135deg, #e65100 0%, #6a1b9a 50%, #880e4f 100%)', emojis: ['🎈', '🔥'] },
+        'national_day':    { bg: 'linear-gradient(135deg, #1a237e 0%, #283593 50%, #c62828 100%)', emojis: ['🇲🇲', '🎉'] },
+        'christmas':       { bg: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #b71c1c 100%)', emojis: ['🎄', '❄️'] },
+        'halloween':       { bg: 'linear-gradient(135deg, #4a0000 0%, #7f3f00 50%, #1a0030 100%)', emojis: ['🎃', '🦇'] },
+        'chinese_ny':      { bg: 'linear-gradient(135deg, #b71c1c 0%, #c62828 50%, #f9a825 100%)', emojis: ['🏮', '🐉'] },
+        'eid_fitr':        { bg: 'linear-gradient(135deg, #1a3c2e 0%, #1b5e20 50%, #004d40 100%)', emojis: ['🌙', '🕌'] },
+        'diwali':          { bg: 'linear-gradient(135deg, #e65100 0%, #f57f17 50%, #6a1b9a 100%)', emojis: ['🪔', '✨'] },
     };
 
-    if (heroGradients[activeHoliday]) {
-        document.documentElement.style.setProperty('--hero-bg', heroGradients[activeHoliday]);
-    }
+    if (decorations[activeHoliday]) {
+        document.documentElement.style.setProperty('--hero-bg', decorations[activeHoliday].bg);
+        const emojis = decorations[activeHoliday].emojis;
+        if(emojis && emojis.length > 0) {
+            const dec1 = document.createElement('div');
+            dec1.className = 'seasonal-decor decor-top-right float';
+            dec1.textContent = emojis[0];
+            hero.appendChild(dec1);
 
-    const decorContainer = document.createElement('div');
-    decorContainer.id = 'hero-decor-layer';
-    decorContainer.className = 'hero-decor';
-
-    // ═══════════════ SVG HELPERS ═══════════════
-
-    // ██ ပိတောက်ပန်း (Padauk) - မြန်မာအမျိုးသားပန်း
-    const padaukSvg = (left, top, size, rot, opacity, extraStyle='') => {
-        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
-        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
-        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};transform:rotate(${rot}deg);pointer-events:none;${extraStyle}">
-            <svg width="${size}" height="${size}" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
-                <ellipse cx="30" cy="18" rx="7" ry="14" fill="#FFB347" transform="rotate(0 30 30)"/>
-                <ellipse cx="30" cy="18" rx="7" ry="14" fill="#FFA020" transform="rotate(72 30 30)"/>
-                <ellipse cx="30" cy="18" rx="7" ry="14" fill="#FFB347" transform="rotate(144 30 30)"/>
-                <ellipse cx="30" cy="18" rx="7" ry="14" fill="#FF8C00" transform="rotate(216 30 30)"/>
-                <ellipse cx="30" cy="18" rx="7" ry="14" fill="#FFCA28" transform="rotate(288 30 30)"/>
-                <circle cx="30" cy="30" r="6" fill="#FFE066"/>
-                <circle cx="30" cy="30" r="3.5" fill="#FF9800"/>
-                <circle cx="30" cy="30" r="1.5" fill="#fff"/>
-            </svg>
-        </div>`;
-    };
-
-    // ██ ပိတောက်ပန်းကြွေ (Falling Petal)
-    const fallingPadauk = (left, delay, size, dur) => `
-        <div style="position:absolute;left:${left};top:-${size}px;pointer-events:none;animation:petalFall ${dur}s ${delay}s linear infinite;opacity:0.7;">
-            <svg width="${size}" height="${size}" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
-                <ellipse cx="15" cy="9" rx="4" ry="8" fill="#FFB347" transform="rotate(0 15 15)"/>
-                <ellipse cx="15" cy="9" rx="4" ry="8" fill="#FFA020" transform="rotate(72 15 15)"/>
-                <ellipse cx="15" cy="9" rx="4" ry="8" fill="#FFCA28" transform="rotate(144 15 15)"/>
-                <ellipse cx="15" cy="9" rx="4" ry="8" fill="#FF8C00" transform="rotate(216 15 15)"/>
-                <ellipse cx="15" cy="9" rx="4" ry="8" fill="#FFD600" transform="rotate(288 15 15)"/>
-                <circle cx="15" cy="15" r="3.5" fill="#FFE066"/>
-            </svg>
-        </div>`;
-
-    // ██ ရေဖျန်းပုံ (Water Drop) - သင်္ကြန်
-    const waterSvg = (left, top, size, opacity, extraStyle='') => {
-        const pos = left === 'auto' ? 'right:4px' : `left:${left}`;
-        const vpos = top === 'auto' ? 'bottom:4px' : `top:${top}`;
-        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;${extraStyle}">
-            <svg width="${size}" height="${size}" viewBox="0 0 40 50" xmlns="http://www.w3.org/2000/svg">
-                <path d="M20 4 Q32 20 32 32 A12 12 0 0 1 8 32 Q8 20 20 4Z" fill="#5BC8EF"/>
-                <path d="M20 12 Q27 23 27 30 A7 7 0 0 1 13 30 Q13 23 20 12Z" fill="#B3E5FC" opacity="0.7"/>
-                <ellipse cx="16" cy="26" rx="3" ry="4.5" fill="#fff" opacity="0.3" transform="rotate(-20 16 26)"/>
-            </svg>
-        </div>`;
-    };
-
-    // ██ ရေဖျန်းကျဆင်း (Falling Water)
-    const fallingWater = (left, delay, size, dur) => `
-        <div style="position:absolute;left:${left};top:-${size}px;pointer-events:none;animation:waterFall ${dur}s ${delay}s linear infinite;opacity:0;">
-            <svg width="${size}" height="${size}" viewBox="0 0 24 32" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2 Q20 14 20 20 A8 8 0 0 1 4 20 Q4 14 12 2Z" fill="#4FC3F7"/>
-                <path d="M12 7 Q17 16 17 20 A5 5 0 0 1 7 20 Q7 16 12 7Z" fill="#B3E5FC" opacity="0.6"/>
-            </svg>
-        </div>`;
-
-    // ██ ဆီမီး/မီးဖို (Lantern SVG) - သီတင်းကျွတ်/တန်ဆောင်တိုင်
-    const lanternSvg = (left, top, size, opacity, extraStyle='') => {
-        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
-        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
-        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:lanternFloat 3s ease-in-out infinite;${extraStyle}">
-            <svg width="${size}" height="${Math.round(size*1.4)}" viewBox="0 0 50 70" xmlns="http://www.w3.org/2000/svg">
-                <line x1="25" y1="0" x2="25" y2="8" stroke="#FFD54F" stroke-width="2"/>
-                <ellipse cx="25" cy="4" rx="5" ry="3" fill="#FF8F00"/>
-                <rect x="8" y="12" width="34" height="44" rx="10" fill="#E53935"/>
-                <rect x="13" y="16" width="24" height="36" rx="7" fill="#FFEE58" opacity="0.85"/>
-                <rect x="8" y="12" width="34" height="7" rx="4" fill="#B71C1C"/>
-                <rect x="8" y="49" width="34" height="7" rx="4" fill="#B71C1C"/>
-                <ellipse cx="25" cy="34" rx="8" ry="10" fill="#FFB300" opacity="0.4"/>
-                <text x="25" y="39" text-anchor="middle" font-size="13" fill="#c62828" font-family="serif" font-weight="bold">福</text>
-                <rect x="4" y="8" width="8" height="3" rx="1.5" fill="#FF8F00"/>
-                <rect x="38" y="8" width="8" height="3" rx="1.5" fill="#FF8F00"/>
-                <line x1="8" y1="59" x2="25" y2="66" stroke="#FFD54F" stroke-width="1.5"/>
-                <line x1="42" y1="59" x2="25" y2="66" stroke="#FFD54F" stroke-width="1.5"/>
-                <ellipse cx="25" cy="67" rx="4" ry="2" fill="#FF8F00"/>
-            </svg>
-        </div>`;
-    };
-
-    // ██ မြန်မာမီးပုံး (Hot air balloon / Fire lantern) - တန်ဆောင်တိုင်
-    const miBuSvg = (left, top, size, opacity, extraStyle='') => {
-        const pos = left === 'auto' ? 'right:5px' : `left:${left}`;
-        const vpos = top === 'auto' ? 'bottom:5px' : `top:${top}`;
-        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:lanternFloat 4s ease-in-out infinite alternate;${extraStyle}">
-            <svg width="${size}" height="${Math.round(size*1.2)}" viewBox="0 0 60 72" xmlns="http://www.w3.org/2000/svg">
-                <ellipse cx="30" cy="28" rx="22" ry="26" fill="#F57F17"/>
-                <ellipse cx="30" cy="28" rx="22" ry="26" fill="url(#mibug)" opacity="0.9"/>
-                <defs><radialGradient id="mibug" cx="40%" cy="35%"><stop offset="0%" stop-color="#FFF176"/><stop offset="60%" stop-color="#FF8F00"/><stop offset="100%" stop-color="#E65100"/></radialGradient></defs>
-                <ellipse cx="30" cy="28" rx="10" ry="14" fill="#FFEE58" opacity="0.5"/>
-                <path d="M18 52 Q30 58 42 52 L38 62 Q30 65 22 62 Z" fill="#5D4037"/>
-                <path d="M22 62 Q30 68 38 62" fill="none" stroke="#FF8F00" stroke-width="2"/>
-                <circle cx="30" cy="60" r="4" fill="#FF6D00" opacity="0.9"/>
-                <circle cx="30" cy="60" r="2" fill="#FFF176"/>
-            </svg>
-        </div>`;
-    };
-
-    // ██ တောင်ဂြိုဟ် / ကြယ်မီး (Star/Firework) - တန်ဆောင်တိုင်
-    const fireworkSvg = (left, top, size, opacity, extraStyle='') => {
-        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
-        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
-        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:sparkle 2s ease-in-out infinite;${extraStyle}">
-            <svg width="${size}" height="${size}" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="30" cy="30" r="5.5" fill="#FFE066"/>
-                <line x1="30" y1="4" x2="30" y2="17" stroke="#FFB300" stroke-width="3" stroke-linecap="round"/>
-                <line x1="30" y1="43" x2="30" y2="56" stroke="#FFB300" stroke-width="3" stroke-linecap="round"/>
-                <line x1="4" y1="30" x2="17" y2="30" stroke="#FF6B35" stroke-width="3" stroke-linecap="round"/>
-                <line x1="43" y1="30" x2="56" y2="30" stroke="#FF6B35" stroke-width="3" stroke-linecap="round"/>
-                <line x1="11" y1="11" x2="20" y2="20" stroke="#F7DC6F" stroke-width="2.5" stroke-linecap="round"/>
-                <line x1="40" y1="40" x2="49" y2="49" stroke="#F7DC6F" stroke-width="2.5" stroke-linecap="round"/>
-                <line x1="49" y1="11" x2="40" y2="20" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/>
-                <line x1="20" y1="40" x2="11" y2="49" stroke="#E74C3C" stroke-width="2.5" stroke-linecap="round"/>
-                <circle cx="30" cy="4" r="2.5" fill="#FFE066"/>
-                <circle cx="30" cy="56" r="2.5" fill="#FFB300"/>
-                <circle cx="4" cy="30" r="2.5" fill="#FF6B35"/>
-                <circle cx="56" cy="30" r="2.5" fill="#FF6B35"/>
-            </svg>
-        </div>`;
-    };
-
-    // ██ ဒဟဲဒဲသိုး (Chinese Coin)
-    const chineseCoinSvg = (left, top, size, opacity, extraStyle='') => {
-        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
-        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
-        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:floatDecor 3s ease-in-out infinite alternate;${extraStyle}">
-            <svg width="${size}" height="${size}" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="25" cy="25" r="23" fill="#F9A825" stroke="#E65100" stroke-width="2"/>
-                <circle cx="25" cy="25" r="17" fill="#FF8F00"/>
-                <rect x="20" y="20" width="10" height="10" fill="#F9A825" stroke="#E65100" stroke-width="1.5"/>
-                <text x="25" y="28" text-anchor="middle" font-size="7" fill="#b71c1c" font-weight="bold" font-family="serif">福</text>
-            </svg>
-        </div>`;
-    };
-
-    // ██ ဆင် SVG (Elephant - Karen/Myanmar)
-    const elephantSvg = (left, top, size, opacity, extraStyle='') => {
-        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
-        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
-        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:floatDecor 4s ease-in-out infinite alternate;${extraStyle}">
-            <svg width="${size}" height="${Math.round(size*0.85)}" viewBox="0 0 80 68" xmlns="http://www.w3.org/2000/svg">
-                <ellipse cx="40" cy="40" rx="28" ry="20" fill="#8D6E63"/>
-                <ellipse cx="62" cy="30" rx="16" ry="18" fill="#8D6E63"/>
-                <ellipse cx="62" cy="26" rx="14" ry="12" fill="#A1887F"/>
-                <circle cx="70" cy="24" r="5" fill="#8D6E63"/>
-                <circle cx="72" cy="22" r="2.5" fill="#fff"/>
-                <circle cx="73" cy="22" r="1.2" fill="#212121"/>
-                <path d="M56 40 Q48 55 52 62" stroke="#795548" stroke-width="4" fill="none" stroke-linecap="round"/>
-                <rect x="20" y="52" width="8" height="14" rx="4" fill="#795548"/>
-                <rect x="32" y="54" width="8" height="12" rx="4" fill="#795548"/>
-                <rect x="44" y="52" width="8" height="14" rx="4" fill="#795548"/>
-                <rect x="56" y="54" width="8" height="12" rx="4" fill="#795548"/>
-                <ellipse cx="40" cy="26" rx="8" ry="4" fill="#D7CCC8" opacity="0.5"/>
-            </svg>
-        </div>`;
-    };
-
-    // ██ ဗုဒ္ဓဆောင်း (Pagoda silhouette)
-    const pagodaSvg = (left, top, size, opacity, extraStyle='') => {
-        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
-        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
-        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:floatDecor 4s ease-in-out infinite alternate;${extraStyle}">
-            <svg width="${size}" height="${Math.round(size*1.5)}" viewBox="0 0 50 75" xmlns="http://www.w3.org/2000/svg">
-                <polygon points="25,2 28,14 22,14" fill="#FFD54F"/>
-                <polygon points="25,14 31,22 19,22" fill="#FFB300"/>
-                <polygon points="25,22 33,32 17,32" fill="#FFD54F"/>
-                <rect x="16" y="32" width="18" height="8" rx="2" fill="#FFB300"/>
-                <rect x="13" y="40" width="24" height="6" rx="2" fill="#FFD54F"/>
-                <rect x="10" y="46" width="30" height="6" rx="2" fill="#FFB300"/>
-                <rect x="18" y="52" width="14" height="20" rx="2" fill="#FFD54F"/>
-                <rect x="22" y="72" width="6" height="3" fill="#FF8F00"/>
-                <circle cx="25" cy="6" r="3" fill="#FFF176"/>
-            </svg>
-        </div>`;
-    };
-
-    // ██ ကြယ်ပွင့် (Snowflake)
-    const snowflakeSvg = (left, delay, size) => `
-        <div style="position:absolute;left:${left};top:-${size}px;pointer-events:none;animation:snowFall ${3+delay}s ${delay}s linear infinite;opacity:0;">
-            <svg width="${size}" height="${size}" viewBox="0 0 30 30" xmlns="http://www.w3.org/2000/svg">
-                <line x1="15" y1="2" x2="15" y2="28" stroke="#E3F2FD" stroke-width="2" stroke-linecap="round"/>
-                <line x1="2" y1="15" x2="28" y2="15" stroke="#E3F2FD" stroke-width="2" stroke-linecap="round"/>
-                <line x1="6" y1="6" x2="24" y2="24" stroke="#BBDEFB" stroke-width="1.5" stroke-linecap="round"/>
-                <line x1="24" y1="6" x2="6" y2="24" stroke="#BBDEFB" stroke-width="1.5" stroke-linecap="round"/>
-                <circle cx="15" cy="15" r="2.5" fill="#90CAF9"/>
-                <circle cx="15" cy="4" r="1.5" fill="#E3F2FD"/>
-                <circle cx="15" cy="26" r="1.5" fill="#E3F2FD"/>
-                <circle cx="4" cy="15" r="1.5" fill="#E3F2FD"/>
-                <circle cx="26" cy="15" r="1.5" fill="#E3F2FD"/>
-            </svg>
-        </div>`;
-
-    // ██ ကြိမ်သစ် / ဖောင်ပိုး (Chinese Dragon element)
-    const dragonCloudSvg = (left, top, size, opacity, extraStyle='') => {
-        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
-        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
-        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:floatDecor 3.5s ease-in-out infinite alternate;${extraStyle}">
-            <svg width="${size}" height="${Math.round(size*0.6)}" viewBox="0 0 80 48" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5 30 Q15 10 25 20 Q35 8 45 18 Q55 5 65 16 Q75 10 78 25 Q75 38 60 35 Q50 45 40 38 Q30 45 20 38 Q8 42 5 30Z" fill="#E53935" opacity="0.8"/>
-                <circle cx="72" cy="22" r="6" fill="#FF8F00"/>
-                <circle cx="74" cy="20" r="2.5" fill="#fff"/>
-                <circle cx="75" cy="19.5" r="1.2" fill="#212121"/>
-                <path d="M76 28 Q80 32 78 36" stroke="#FF8F00" stroke-width="2" fill="none" stroke-linecap="round"/>
-                <ellipse cx="20" cy="28" rx="5" ry="3" fill="#FFCDD2" opacity="0.6"/>
-                <ellipse cx="45" cy="22" rx="4" ry="2.5" fill="#FFCDD2" opacity="0.6"/>
-            </svg>
-        </div>`;
-    };
-
-    // ██ ဆီမီး/မုန့် (Diwali diya lamp)
-    const diyaSvg = (left, top, size, opacity, extraStyle='') => {
-        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
-        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
-        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:floatDecor 3s ease-in-out infinite alternate;${extraStyle}">
-            <svg width="${size}" height="${Math.round(size*1.1)}" viewBox="0 0 50 55" xmlns="http://www.w3.org/2000/svg">
-                <path d="M10 35 Q25 20 40 35 Q42 42 25 44 Q8 42 10 35Z" fill="#D84315"/>
-                <path d="M14 35 Q25 24 36 35 Q37 40 25 42 Q13 40 14 35Z" fill="#FF7043"/>
-                <ellipse cx="25" cy="32" rx="8" ry="4" fill="#FF8A65"/>
-                <path d="M25 32 Q22 22 25 14 Q28 22 25 32Z" fill="#FF8F00" opacity="0.9"/>
-                <ellipse cx="25" cy="15" rx="3.5" ry="5" fill="#FFEE58" opacity="0.95"/>
-                <ellipse cx="25" cy="13" rx="2" ry="3.5" fill="#fff" opacity="0.7"/>
-                <circle cx="25" cy="32" r="3" fill="#FFD54F"/>
-            </svg>
-        </div>`;
-    };
-
-    // ██ ဆင်ပုစ (Spider/Halloween)
-    const spiderwebSvg = (left, top, size, opacity, extraStyle='') => {
-        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
-        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
-        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:floatDecor 3s ease-in-out infinite alternate;${extraStyle}">
-            <svg width="${size}" height="${size}" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
-                <line x1="30" y1="4" x2="30" y2="56" stroke="#fff" stroke-width="1.2" opacity="0.7"/>
-                <line x1="4" y1="30" x2="56" y2="30" stroke="#fff" stroke-width="1.2" opacity="0.7"/>
-                <line x1="11" y1="11" x2="49" y2="49" stroke="#fff" stroke-width="1.2" opacity="0.7"/>
-                <line x1="49" y1="11" x2="11" y2="49" stroke="#fff" stroke-width="1.2" opacity="0.7"/>
-                <circle cx="30" cy="30" r="5" stroke="#fff" stroke-width="1" fill="none" opacity="0.6"/>
-                <circle cx="30" cy="30" r="12" stroke="#fff" stroke-width="1" fill="none" opacity="0.5"/>
-                <circle cx="30" cy="30" r="20" stroke="#fff" stroke-width="1" fill="none" opacity="0.4"/>
-                <ellipse cx="30" cy="18" rx="6" ry="4" fill="#212121"/>
-                <circle cx="28" cy="17" r="1.5" fill="#ff0000"/>
-                <circle cx="32" cy="17" r="1.5" fill="#ff0000"/>
-                <line x1="24" y1="20" x2="18" y2="28" stroke="#212121" stroke-width="1.5" stroke-linecap="round"/>
-                <line x1="24" y1="20" x2="16" y2="22" stroke="#212121" stroke-width="1.5" stroke-linecap="round"/>
-                <line x1="36" y1="20" x2="42" y2="28" stroke="#212121" stroke-width="1.5" stroke-linecap="round"/>
-                <line x1="36" y1="20" x2="44" y2="22" stroke="#212121" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-        </div>`;
-    };
-
-    // ██ လ (Crescent Moon) - ဝါဆို/ဝါကြွတ်/ရောဇာ
-    const moonSvg = (left, top, size, opacity, col='#FFE066', extraStyle='') => {
-        const pos = left === 'auto' ? 'right:0' : `left:${left}`;
-        const vpos = top === 'auto' ? 'bottom:0' : `top:${top}`;
-        return `<div style="position:absolute;${vpos};${pos};opacity:${opacity};pointer-events:none;animation:floatDecor 5s ease-in-out infinite alternate;${extraStyle}">
-            <svg width="${size}" height="${size}" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
-                <path d="M30 5 A18 18 0 1 0 30 45 A12 12 0 1 1 30 5Z" fill="${col}"/>
-            </svg>
-        </div>`;
-    };
-
-    // ══════════════════════════════════════════
-    // BUILD HTML FOR EACH HOLIDAY
-    let html = '';
-
-    // ══ THINGYAN (သင်္ကြန်) ══ Padauk + water
-    if (activeHoliday === 'thingyan') {
-        html = `
-            ${padaukSvg('-10px', '-15px', 68, -22, 0.75)}
-            ${padaukSvg('auto', '-10px', 54, 18, 0.65, 'animation:floatDecor 4s ease-in-out infinite alternate;')}
-            ${padaukSvg('28%', 'auto', 46, 8, 0.5, 'animation:floatDecor 3s ease-in-out infinite alternate;')}
-            ${padaukSvg('62%', 'auto', 34, -12, 0.4, 'animation:floatDecor 5s ease-in-out infinite alternate;')}
-            ${fallingPadauk('8%',  0,   18, 5.5)}
-            ${fallingPadauk('22%', 0.8, 14, 6.2)}
-            ${fallingPadauk('38%', 1.5, 16, 5.0)}
-            ${fallingPadauk('55%', 0.3, 12, 7.0)}
-            ${fallingPadauk('70%', 1.1, 15, 5.8)}
-            ${fallingPadauk('85%', 0.6, 13, 6.5)}
-            ${fallingWater('15%', 0.5, 20, 3.5)}
-            ${fallingWater('35%', 0.0, 16, 4.2)}
-            ${fallingWater('60%', 1.0, 18, 3.8)}
-            ${fallingWater('78%', 0.3, 14, 4.6)}
-            ${waterSvg('auto', '8px', 38, 0.65, 'animation:floatDecor 2.5s ease-in-out infinite alternate;')}
-            <div style="position:absolute;bottom:8px;right:20px;font-size:28px;opacity:0.55;animation:floatDecor 2s ease-in-out infinite alternate;">💦</div>
-            <div style="position:absolute;top:12px;left:42%;font-size:18px;opacity:0.35;animation:floatDecor 3s ease-in-out infinite alternate;">💧</div>
-        `;
+            if(emojis.length > 1) {
+                const dec2 = document.createElement('div');
+                dec2.className = 'seasonal-decor decor-bottom-left swing';
+                dec2.textContent = emojis[1];
+                hero.appendChild(dec2);
+            }
+        }
     }
-    // ══ MYANMAR NEW YEAR (မြန်မာနှစ်သစ်) ══ Padauk-heavy
-    else if (activeHoliday === 'myanmar_newyear') {
-        html = `
-            ${padaukSvg('-8px', '-18px', 74, -20, 0.82)}
-            ${padaukSvg('auto', '-12px', 58, 16, 0.68)}
-            ${padaukSvg('35%', '-10px', 46, 5, 0.55)}
-            ${padaukSvg('-12px', 'auto', 40, -28, 0.42)}
-            ${padaukSvg('auto', 'auto', 34, 24, 0.42)}
-            ${fallingPadauk('10%', 0,   16, 5.5)}
-            ${fallingPadauk('25%', 0.9, 14, 6.5)}
-            ${fallingPadauk('45%', 1.7, 18, 5.2)}
-            ${fallingPadauk('65%', 0.4, 13, 6.8)}
-            ${fallingPadauk('80%', 1.3, 15, 5.8)}
-            <div style="position:absolute;top:10px;left:60%;font-size:24px;opacity:0.5;animation:floatDecor 3s ease-in-out infinite alternate;">✨</div>
-        `;
-    }
-    // ══ INTERNATIONAL NEW YEAR (ဇန်နဝါရီ ၁) ══
-    else if (activeHoliday === 'newyear') {
-        html = `
-            <div style="position:absolute;top:-5px;left:6px;font-size:46px;opacity:0.65;animation:floatDecor 3s ease-in-out infinite alternate;">🎉</div>
-            <div style="position:absolute;bottom:8px;right:8px;font-size:40px;opacity:0.6;animation:floatDecor 2.5s ease-in-out infinite alternate;">🎊</div>
-            <div style="position:absolute;top:14px;right:26%;font-size:28px;opacity:0.45;animation:sparkle 2s ease-in-out infinite;">✨</div>
-            <div style="position:absolute;bottom:14px;left:24%;font-size:24px;opacity:0.38;animation:sparkle 2.5s 0.5s ease-in-out infinite;">🌟</div>
-            <div style="position:absolute;top:5px;left:46%;font-size:22px;opacity:0.35;animation:sparkle 3s 1s ease-in-out infinite;">🎆</div>
-            ${fireworkSvg('auto', '-5px', 44, 0.5)}
-            ${fireworkSvg('32%', '-8px', 36, 0.4)}
-        `;
-    }
-    // ══ NEW YEAR EVE (ဒီဇင်ဘာ ၃၁) ══
-    else if (activeHoliday === 'new_year_eve') {
-        html = `
-            <div style="position:absolute;top:-5px;left:6px;font-size:44px;opacity:0.65;animation:floatDecor 2.5s ease-in-out infinite alternate;">🎆</div>
-            <div style="position:absolute;bottom:8px;right:10px;font-size:38px;opacity:0.6;animation:floatDecor 3s ease-in-out infinite alternate;">🥂</div>
-            <div style="position:absolute;top:14px;right:22%;font-size:26px;opacity:0.45;animation:sparkle 1.8s ease-in-out infinite;">✨</div>
-            <div style="position:absolute;bottom:12px;left:22%;font-size:22px;opacity:0.4;animation:sparkle 2.2s 0.4s ease-in-out infinite;">🎇</div>
-            ${fireworkSvg('-5px', '5px', 50, 0.55)}
-            ${fireworkSvg('auto', 'auto', 40, 0.45)}
-        `;
-    }
-    // ══ KAREN NEW YEAR (ကရင်နှစ်သစ်) ══
-    else if (activeHoliday === 'karen_newyear') {
-        html = `
-            ${elephantSvg('-8px', 'auto', 72, 0.6)}
-            <div style="position:absolute;top:-8px;right:8px;font-size:42px;opacity:0.55;animation:floatDecor 3.5s ease-in-out infinite alternate;">🌺</div>
-            <div style="position:absolute;top:8px;left:42%;font-size:28px;opacity:0.45;animation:floatDecor 4s ease-in-out infinite alternate;">🌸</div>
-            <div style="position:absolute;bottom:8px;right:24%;font-size:24px;opacity:0.4;animation:sparkle 2.5s ease-in-out infinite;">✨</div>
-            <div style="position:absolute;bottom:12px;left:16px;font-size:22px;opacity:0.38;animation:floatDecor 3s ease-in-out infinite alternate;">💛</div>
-        `;
-    }
-    // ══ UNION DAY (ပြည်ထောင်စုနေ့) ══
-    else if (activeHoliday === 'union_day') {
-        html = `
-            <div style="position:absolute;top:-5px;left:5px;font-size:46px;opacity:0.65;animation:floatDecor 4s ease-in-out infinite alternate;">🇲🇲</div>
-            ${padaukSvg('36%', '-8px', 44, 10, 0.5)}
-            <div style="position:absolute;top:8px;right:10px;font-size:34px;opacity:0.5;animation:sparkle 3s ease-in-out infinite;">⭐</div>
-            <div style="position:absolute;bottom:8px;right:22%;font-size:26px;opacity:0.42;animation:floatDecor 3.5s ease-in-out infinite alternate;">🕊️</div>
-            <div style="position:absolute;bottom:12px;left:28%;font-size:22px;opacity:0.35;animation:floatDecor 4s ease-in-out infinite alternate;">🌿</div>
-        `;
-    }
-    // ══ VALENTINES (နှလုံးသားနေ့) ══
-    else if (activeHoliday === 'valentines') {
-        html = `
-            <div style="position:absolute;top:-8px;left:5px;font-size:48px;opacity:0.65;animation:floatDecor 3.5s ease-in-out infinite alternate;">❤️</div>
-            <div style="position:absolute;top:-5px;right:8px;font-size:40px;opacity:0.6;animation:floatDecor 4s ease-in-out infinite alternate;">💕</div>
-            <div style="position:absolute;bottom:8px;left:22%;font-size:30px;opacity:0.5;animation:floatDecor 3s 0.5s ease-in-out infinite alternate;">💝</div>
-            <div style="position:absolute;top:10px;left:40%;font-size:24px;opacity:0.45;animation:sparkle 2s ease-in-out infinite;">💖</div>
-            <div style="position:absolute;bottom:10px;right:18%;font-size:22px;opacity:0.38;animation:floatDecor 4.5s ease-in-out infinite alternate;">🌹</div>
-        `;
-    }
-    // ══ TABAUNG (တပေါင်းပွဲ) ══
-    else if (activeHoliday === 'tabaung') {
-        html = `
-            ${padaukSvg('-5px', '-12px', 60, -18, 0.68)}
-            ${moonSvg('auto', '-5px', 52, 0.6, '#FFEE58')}
-            ${pagodaSvg('auto', 'auto', 44, 0.5)}
-            <div style="position:absolute;bottom:10px;right:28%;font-size:24px;opacity:0.42;animation:sparkle 2.5s ease-in-out infinite;">✨</div>
-            <div style="position:absolute;bottom:12px;left:16%;font-size:20px;opacity:0.38;animation:floatDecor 4s ease-in-out infinite alternate;">🌸</div>
-        `;
-    }
-    // ══ WORKERS DAY (အလုပ်သမားနေ့) ══
-    else if (activeHoliday === 'workers_day') {
-        html = `
-            <div style="position:absolute;top:-5px;left:8px;font-size:44px;opacity:0.58;animation:floatDecor 3.5s ease-in-out infinite alternate;">⚙️</div>
-            <div style="position:absolute;top:5px;right:10px;font-size:38px;opacity:0.52;animation:floatDecor 4s ease-in-out infinite alternate;">🔧</div>
-            <div style="position:absolute;bottom:8px;right:24%;font-size:28px;opacity:0.44;animation:floatDecor 3s ease-in-out infinite alternate;">💪</div>
-            <div style="position:absolute;bottom:12px;left:30%;font-size:24px;opacity:0.38;animation:sparkle 3s ease-in-out infinite;">⭐</div>
-            <div style="position:absolute;top:8px;left:44%;font-size:20px;opacity:0.35;animation:floatDecor 4.5s ease-in-out infinite alternate;">🏭</div>
-        `;
-    }
-    // ══ KASONE (ကဆုန်ညောင်ရေ) ══
-    else if (activeHoliday === 'kasone') {
-        html = `
-            ${pagodaSvg('5px', '-5px', 50, 0.65)}
-            <div style="position:absolute;top:5px;right:10px;font-size:38px;opacity:0.58;animation:floatDecor 4s ease-in-out infinite alternate;">🌳</div>
-            <div style="position:absolute;bottom:8px;right:25%;font-size:26px;opacity:0.45;animation:floatDecor 3s ease-in-out infinite alternate;">💧</div>
-            <div style="position:absolute;bottom:10px;left:20%;font-size:22px;opacity:0.38;animation:sparkle 3s ease-in-out infinite;">✨</div>
-            ${waterSvg('auto', 'auto', 34, 0.5)}
-        `;
-    }
-    // ══ MARTYRS DAY (အာဇာနည်နေ့) ══
-    else if (activeHoliday === 'martyrs_day') {
-        html = `
-            <div style="position:absolute;top:-5px;left:8px;font-size:44px;opacity:0.58;animation:lanternFloat 4s ease-in-out infinite;">🕯️</div>
-            <div style="position:absolute;top:5px;right:8px;font-size:38px;opacity:0.52;animation:floatDecor 4s ease-in-out infinite alternate;">🌹</div>
-            <div style="position:absolute;bottom:8px;right:26%;font-size:24px;opacity:0.42;animation:floatDecor 3.5s ease-in-out infinite alternate;">🕊️</div>
-            <div style="position:absolute;bottom:12px;left:26%;font-size:22px;opacity:0.36;animation:floatDecor 4.5s ease-in-out infinite alternate;">🌿</div>
-            ${pagodaSvg('auto', 'auto', 40, 0.42)}
-        `;
-    }
-    // ══ WASO (ဝါဆိုပွဲ) ══
-    else if (activeHoliday === 'waso_begin') {
-        html = `
-            ${lanternSvg('6px', '-10px', 54, 0.68)}
-            <div style="position:absolute;top:6px;right:12px;font-size:38px;opacity:0.58;animation:lanternFloat 3.5s ease-in-out infinite;">☸️</div>
-            ${pagodaSvg('36%', 'auto', 42, 0.5)}
-            <div style="position:absolute;bottom:10px;left:30%;font-size:22px;opacity:0.42;animation:sparkle 2.5s ease-in-out infinite;">🕯️</div>
-            ${moonSvg('auto', '-5px', 42, 0.45)}
-        `;
-    }
-    // ══ DHAMMA DAY (ဝါဆိုပွဲ/ကညင်မီး) ══
-    else if (activeHoliday === 'dhamma_day') {
-        html = `
-            ${lanternSvg('8px', '-10px', 56, 0.7)}
-            <div style="position:absolute;top:5px;right:12px;font-size:38px;opacity:0.58;animation:lanternFloat 3s ease-in-out infinite;">☸️</div>
-            ${lanternSvg('auto', 'auto', 42, 0.55)}
-            <div style="position:absolute;bottom:8px;left:28%;font-size:24px;opacity:0.44;animation:lanternFloat 4s ease-in-out infinite;">🕯️</div>
-            ${pagodaSvg('38%', '-5px', 40, 0.45)}
-        `;
-    }
-    // ══ WASO END (ဝါကြွတ်) ══
-    else if (activeHoliday === 'waso_end') {
-        html = `
-            <div style="position:absolute;top:-8px;left:5px;font-size:48px;opacity:0.65;animation:lanternFloat 3.5s ease-in-out infinite;">☸️</div>
-            ${lanternSvg('auto', '-5px', 50, 0.6)}
-            <div style="position:absolute;bottom:8px;right:24%;font-size:26px;opacity:0.48;animation:sparkle 2s ease-in-out infinite;">✨</div>
-            <div style="position:absolute;bottom:12px;left:20%;font-size:22px;opacity:0.4;animation:floatDecor 4s ease-in-out infinite alternate;">🙏</div>
-        `;
-    }
-    // ══ THADINGYUT (သီတင်းကျွတ်) ══ Light Festival
-    else if (activeHoliday === 'thadingyut') {
-        html = `
-            ${lanternSvg('5px', '-12px', 64, 0.75)}
-            ${lanternSvg('auto', '-8px', 52, 0.65)}
-            ${lanternSvg('34%', '-6px', 44, 0.55)}
-            ${lanternSvg('auto', 'auto', 38, 0.5)}
-            ${fireworkSvg('18%', '-5px', 32, 0.45)}
-            <div style="position:absolute;bottom:8px;left:18%;font-size:26px;opacity:0.48;animation:sparkle 2s ease-in-out infinite;">✨</div>
-            <div style="position:absolute;top:14px;left:56%;font-size:20px;opacity:0.42;animation:sparkle 2.5s 0.5s ease-in-out infinite;">⭐</div>
-        `;
-    }
-    // ══ TAZAUNGDAING (တန်ဆောင်တိုင်) ══ Balloon+Lantern
-    else if (activeHoliday === 'tazaungdaing') {
-        html = `
-            ${miBuSvg('5px', '-8px', 58, 0.68)}
-            ${miBuSvg('auto', '-5px', 46, 0.58, 'animation-delay:1s;')}
-            ${fireworkSvg('36%', '-6px', 44, 0.52)}
-            ${lanternSvg('auto', 'auto', 38, 0.48)}
-            <div style="position:absolute;bottom:0px;left:14px;font-size:30px;animation:floatUp 5s linear infinite;opacity:0.52;">🎐</div>
-            <div style="position:absolute;bottom:10px;left:36%;font-size:22px;opacity:0.44;animation:sparkle 2s ease-in-out infinite;">✨</div>
-        `;
-    }
-    // ══ NATIONAL DAY (အမျိုးသားနေ့) ══
-    else if (activeHoliday === 'national_day') {
-        html = `
-            <div style="position:absolute;top:-5px;left:5px;font-size:46px;opacity:0.65;animation:floatDecor 4s ease-in-out infinite alternate;">🇲🇲</div>
-            <div style="position:absolute;top:8px;right:8px;font-size:36px;opacity:0.52;animation:sparkle 3s ease-in-out infinite;">🌟</div>
-            ${padaukSvg('32%', '-8px', 44, 8, 0.48)}
-            ${pagodaSvg('auto', 'auto', 44, 0.45)}
-            <div style="position:absolute;bottom:8px;right:24%;font-size:22px;opacity:0.38;animation:sparkle 2.5s ease-in-out infinite;">✨</div>
-        `;
-    }
-    // ══ CHRISTMAS (ခရစ္စမတ်) ══
-    else if (activeHoliday === 'christmas') {
-        html = `
-            <div style="position:absolute;top:-8px;left:5px;font-size:48px;opacity:0.65;animation:floatDecor 4s ease-in-out infinite alternate;">🎄</div>
-            <div style="position:absolute;top:-5px;right:8px;font-size:40px;opacity:0.58;animation:floatDecor 3.5s ease-in-out infinite alternate;">🎅</div>
-            ${snowflakeSvg('8%',  0,   20)}
-            ${snowflakeSvg('22%', 1.0, 16)}
-            ${snowflakeSvg('40%', 0.5, 18)}
-            ${snowflakeSvg('58%', 1.5, 14)}
-            ${snowflakeSvg('75%', 0.2, 17)}
-            ${snowflakeSvg('90%', 1.2, 15)}
-            <div style="position:absolute;bottom:8px;right:22%;font-size:28px;opacity:0.48;animation:sparkle 2.5s ease-in-out infinite;">⭐</div>
-            <div style="position:absolute;bottom:10px;left:22%;font-size:24px;opacity:0.4;animation:floatDecor 3.5s ease-in-out infinite alternate;">🎁</div>
-        `;
-    }
-    // ══ HALLOWEEN ══
-    else if (activeHoliday === 'halloween') {
-        html = `
-            <div style="position:absolute;top:-8px;left:5px;font-size:48px;opacity:0.65;animation:floatDecor 3.5s ease-in-out infinite alternate;">🎃</div>
-            <div style="position:absolute;top:-5px;right:8px;font-size:40px;opacity:0.6;animation:floatDecor 4s ease-in-out infinite alternate;">🦇</div>
-            ${spiderwebSvg('34%', '-5px', 52, 0.45)}
-            <div style="position:absolute;bottom:8px;right:20%;font-size:28px;opacity:0.5;animation:floatDecor 3s ease-in-out infinite alternate;">👻</div>
-            <div style="position:absolute;bottom:10px;left:20%;font-size:22px;opacity:0.42;animation:sparkle 2.5s ease-in-out infinite;">🕸️</div>
-        `;
-    }
-    // ══ CHINESE NEW YEAR (တရုတ်နှစ်သစ်) ══
-    else if (activeHoliday === 'chinese_ny') {
-        html = `
-            ${dragonCloudSvg('-5px', '-8px', 90, 0.72)}
-            ${lanternSvg('auto', '-10px', 54, 0.68)}
-            ${chineseCoinSvg('28%', '-5px', 40, 0.5)}
-            ${lanternSvg('auto', 'auto', 42, 0.55)}
-            ${chineseCoinSvg('-5px', 'auto', 36, 0.42)}
-            <div style="position:absolute;bottom:8px;left:35%;font-size:24px;opacity:0.45;animation:sparkle 2s ease-in-out infinite;">✨</div>
-            <div style="position:absolute;top:10px;left:58%;font-size:22px;opacity:0.4;animation:floatDecor 3s ease-in-out infinite alternate;">🧧</div>
-        `;
-    }
-    // ══ EID AL-FITR (ငှက်ဖျားဝတ်ပွဲ) ══
-    else if (activeHoliday === 'eid_fitr') {
-        html = `
-            ${moonSvg('5px', '-5px', 58, 0.68, '#FFF9C4')}
-            <div style="position:absolute;top:5px;right:8px;font-size:40px;opacity:0.58;animation:floatDecor 4s ease-in-out infinite alternate;">🕌</div>
-            <div style="position:absolute;bottom:8px;right:22%;font-size:28px;opacity:0.48;animation:sparkle 2.5s ease-in-out infinite;">⭐</div>
-            <div style="position:absolute;bottom:12px;left:20%;font-size:24px;opacity:0.42;animation:floatDecor 3.5s ease-in-out infinite alternate;">🌙</div>
-            ${chineseCoinSvg('40%', 'auto', 32, 0.38)}
-        `;
-    }
-    // ══ DIWALI (ဒေဝါလ/မီးပွဲ) ══
-    else if (activeHoliday === 'diwali') {
-        html = `
-            ${diyaSvg('5px', '-5px', 54, 0.72)}
-            ${diyaSvg('auto', '-8px', 46, 0.65)}
-            ${diyaSvg('38%', 'auto', 40, 0.55)}
-            ${fireworkSvg('-5px', 'auto', 44, 0.5)}
-            ${fireworkSvg('auto', '-5px', 38, 0.48)}
-            <div style="position:absolute;bottom:8px;left:36%;font-size:22px;opacity:0.45;animation:sparkle 2s ease-in-out infinite;">✨</div>
-            <div style="position:absolute;top:10px;left:55%;font-size:20px;opacity:0.4;animation:sparkle 2.5s 0.5s ease-in-out infinite;">🌟</div>
-        `;
-    }
-
-    decorContainer.innerHTML = html;
-    const grid = hero.querySelector('.hero-grid');
-    if (grid) { grid.insertAdjacentElement('afterend', decorContainer); }
-    else { hero.appendChild(decorContainer); }
 }
 
 function updateHero() { 
@@ -3486,7 +3059,6 @@ function updateHero() {
     const el = document.getElementById('h-date'); 
     if(el) el.textContent = new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'}); 
     
-    // အခါကြီးရက်ကြီး အလှဆင်ခြင်းကို ခေါ်ယူရန်
     updateSeasonalDecorations(); 
 }
 
@@ -4624,18 +4196,54 @@ function renderProfileCard(p) {
     const isClipped = activeEntries.length > maxEntriesToShow;
     const displayActiveEntries = isClipped ? activeEntries.slice(0, 30) : activeEntries;
 
-    const groupedActive = {};
-    displayActiveEntries.forEach(e => { const d = getDateStr(e.date || e.ts); if(!groupedActive[d]) groupedActive[d] = []; groupedActive[d].push(e); });
+    // GROUPING LOGIC
+    const today = todayStr();
+    let yestD = new Date(today + 'T00:00:00'); yestD.setDate(yestD.getDate() - 1);
+    const yesterday = toLocalIso(yestD);
+
+    const groupedActive = {}; // Structure: { "Day:2023-10-05": [], "Month:2023-09": [] }
     
-    let entriesHtml = Object.entries(groupedActive).map(([d, items]) => {
-        return `<div class="tgroup-date" style="padding:10px 0 6px; display:flex; justify-content:space-between; align-items:center;">
-            <span>${dayLabel(d)}</span>
-            <span style="font-size:0.75rem; font-weight:600; color:var(--text3); opacity:0.8;">Net: ${fmt(items.reduce((s,e) => {
-                if(e.debtType === 'credit') return s + Number(e.amount);
-                if(e.debtType === 'debt') return s - Number(e.amount);
-                return s;
-            }, 0))}</span>
-        </div>` + items.map(e => {
+    displayActiveEntries.forEach(e => {
+        const dStr = getDateStr(e.date || e.ts);
+        if (dStr === today || dStr === yesterday) {
+            const key = "Day:" + dStr;
+            if(!groupedActive[key]) groupedActive[key] = [];
+            groupedActive[key].push(e);
+        } else {
+            const monthKey = "Month:" + dStr.slice(0, 7); // e.g., 2023-10
+            if(!groupedActive[monthKey]) groupedActive[monthKey] = [];
+            groupedActive[monthKey].push(e);
+        }
+    });
+
+    // Sort group keys: Days first (newest), then Months (newest)
+    const sortedKeys = Object.keys(groupedActive).sort((a,b) => b.split(':')[1].localeCompare(a.split(':')[1]));
+
+    let entriesHtml = sortedKeys.map((key, idx) => {
+        const items = groupedActive[key];
+        const [gType, gVal] = key.split(':');
+        
+        let headerLabel = "";
+        let isCollapsedByDefault = false;
+
+        if (gType === 'Day') {
+            headerLabel = dayLabel(gVal);
+        } else {
+            // Month Grouping
+            const [y, m] = gVal.split('-');
+            headerLabel = new Date(Number(y), Number(m)-1, 1).toLocaleDateString('en-US', {month:'long', year:'numeric'});
+            isCollapsedByDefault = true;
+        }
+
+        const groupNet = items.reduce((s,e) => {
+            if(e.debtType === 'credit') return s + Number(e.amount);
+            if(e.debtType === 'debt') return s - Number(e.amount);
+            return s;
+        }, 0);
+
+        const groupId = `grp-${pid}-${idx}`;
+
+        const itemsHtml = items.map(e => {
             const ec = e.debtType === 'credit' ? 'var(--green)' : 'var(--red)';
             const ibg = e.debtType === 'credit' ? 'rgba(5,150,105,.12)' : 'rgba(220,38,38,.1)';
             const ico = e.debtType === 'credit' ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2.5" stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>';
@@ -4644,13 +4252,16 @@ function renderProfileCard(p) {
             const eid = e.id;
             const paidBtn = e.debtType !== 'settled' ? `<button class="act-edit" onclick="event.stopPropagation();markSettled('${eid}')">${t('paid_btn')}</button>` : '';
 
+            // if month group, add the date snippet below time
+            const extraDateStr = (gType === 'Month') ? ` · ${fmtDate(getDateStr(e.date || e.ts))}` : '';
+
             return `
             <div class="titem" id="dei-${eid}" style="border-left-color: ${ec};cursor:pointer;" onclick="toggleActionMenu(this)">
                 <div class="tico" style="background:${ibg}">${ico}</div>
                 <div class="tinfo">
                     <div class="tname">${e.note || (e.debtType === 'settled' ? t('settled_btn') : e.debtType)}</div>
                     <div class="tsub">${e.debtType === 'credit' ? t('owed_btn') : (e.debtType === 'debt' ? t('i_owe_btn') : t('settled_btn'))}</div>
-                    <div class="ttime">${dtStr}</div>
+                    <div class="ttime">${dtStr}${extraDateStr}</div>
                 </div>
                 <div class="tamt mono" style="color:${ec}">${sign}${fmt(e.amount)}</div>
                 <div class="tactions">
@@ -4660,6 +4271,22 @@ function renderProfileCard(p) {
                 </div>
             </div>`;
         }).join('');
+
+        return `
+        <div style="margin-bottom:8px;">
+            <div class="tgroup-header" onclick="toggleDebtHistoryGroup('${groupId}', this)">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:0.5px;">${headerLabel} <span style="opacity:0.6; font-weight:500; font-size:0.65rem; text-transform:none; margin-left:4px;">(${items.length})</span></span>
+                </div>
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <span style="font-size:0.75rem; font-weight:700; color:var(--text3);">Net: ${fmt(groupNet)}</span>
+                    <svg class="chevron ${!isCollapsedByDefault ? 'open' : ''}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </div>
+            </div>
+            <div id="${groupId}" style="display: ${isCollapsedByDefault ? 'none' : 'block'};">
+                ${itemsHtml}
+            </div>
+        </div>`;
     }).join('');
 
     if (isClipped) {
@@ -4721,6 +4348,19 @@ function renderProfileCard(p) {
             ${finalHistHtml || `<div style="color:var(--text3);font-size:0.85rem;padding:8px">${t('no_records')}</div>`}
         </div>
     </div>`;
+}
+
+function toggleDebtHistoryGroup(groupId, headerEl) {
+    const content = document.getElementById(groupId);
+    if (!content) return;
+    const chevron = headerEl.querySelector('.chevron');
+    if (content.style.display === 'none') {
+        content.style.display = 'block';
+        if (chevron) chevron.classList.add('open');
+    } else {
+        content.style.display = 'none';
+        if (chevron) chevron.classList.remove('open');
+    }
 }
 
 function goToDebtProfile(name) {
@@ -4794,7 +4434,17 @@ function renderDebts() {
         if(!srch) return true;
         if(p.name.toLowerCase().includes(srch)) return true;
         return p.entries.some(e => {
-            return (e.note||'').toLowerCase().includes(srch) || (e.datetime||'').includes(srch) || (e.date||'').includes(srch);
+            const dStr = e.datetime || e.date || '';
+            const fmtD = fmtDate(getDateStr(dStr)).toLowerCase();
+            let customDateStr = '';
+            if (dStr.includes('-')) {
+                const [y, m, d] = dStr.split('T')[0].split('-');
+                customDateStr = `${parseInt(d)}.${parseInt(m)}.${y}`;
+            }
+            return (e.note||'').toLowerCase().includes(srch) || 
+                   dStr.includes(srch) || 
+                   fmtD.includes(srch) ||
+                   customDateStr.includes(srch);
         });
     });
     
@@ -4825,7 +4475,19 @@ function renderDebts() {
                     if(!sf.profileNames || !sf.profileNames.includes(p.name)) return false;
                     if(!srch) return true;
                     if(p.name.toLowerCase().includes(srch)) return true;
-                    return p.entries.some(e => (e.note||'').toLowerCase().includes(srch) || (e.datetime||'').includes(srch) || (e.date||'').includes(srch));
+                    return p.entries.some(e => {
+                        const dStr = e.datetime || e.date || '';
+                        const fmtD = fmtDate(getDateStr(dStr)).toLowerCase();
+                        let customDateStr = '';
+                        if (dStr.includes('-')) {
+                            const [y, m, d] = dStr.split('T')[0].split('-');
+                            customDateStr = `${parseInt(d)}.${parseInt(m)}.${y}`;
+                        }
+                        return (e.note||'').toLowerCase().includes(srch) || 
+                               dStr.includes(srch) || 
+                               fmtD.includes(srch) ||
+                               customDateStr.includes(srch);
+                    });
                 });
                 
                 var sfNet = 0;
@@ -4844,7 +4506,7 @@ function renderDebts() {
 
                 var sfContent = sfProfiles.length ? getSortedDebtProfiles(sfProfiles).map(renderProfileCard).join('') : `<div style="color:var(--text3);font-size:0.85rem;padding:8px">${t('no_profiles_folder')}</div>`;
                 return '<div style="margin-bottom:12px;border:1px solid var(--border);border-radius:var(--r2);overflow:hidden">'
-                    + '<div id="dsf-hdr-'+sf.id+'" class="titem" style="border-radius:0;cursor:pointer;background:var(--surface2)" onclick="toggleSubFolder(\''+sf.id+'\')">'
+                    + '<div id="dsf-hdr-'+sf.id+'" class="titem debt-subfolder-hdr" style="border-radius:0;cursor:pointer;background:#ffffff" onclick="toggleSubFolder(\''+sf.id+'\')">'
                     + '<div class="tico" style="background:rgba(59,91,219,.12);color:var(--accent)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>'
                     + '<div class="tinfo"><div class="tname" style="font-weight:700">'+sf.name+'</div><div class="tsub">'+sfProfiles.length+' '+t('records')+'</div></div>'
                     + '<div class="tamt mono '+(sfNet>=0?'up':'down')+'">' + (sfNet >= 0 ? '+' : '') + fmt(sfNet) + '</div>'
@@ -4872,11 +4534,11 @@ function renderDebts() {
 }
 
 function toggleDebtProfile(pid, hid) {
-    var profileHeader = document.querySelector('#' + pid + ' .titem');
+    var profileHeader = document.querySelector('#' + pid + ' > .titem');
     var wasOpen = false;
     if (profileHeader) wasOpen = profileHeader.classList.contains('open');
 
-    document.querySelectorAll('#debtList .titem.open, #debtSubFolderList .titem.open').forEach(function(e) { e.classList.remove('open'); });
+    document.querySelectorAll('#debtList > .dprof > .titem.open, #debtSubFolderList .dprof > .titem.open').forEach(function(e) { e.classList.remove('open'); });
     document.querySelectorAll('.dprof > div[id^="dh_"]').forEach(function(e) { e.style.display = 'none'; });
 
     if (!wasOpen) {
@@ -5258,7 +4920,7 @@ function backupData() {
 function restoreFromFile(ev) {
     const file = ev.target.files[0]; if(!file) return;
     const reader = new FileReader();
-    reader.onload = e => {
+    reader.onload = async e => {
         try {
             let importedData = JSON.parse(e.target.result);
             db = Object.assign(FRESH_DB(), importedData);
@@ -5274,7 +4936,9 @@ function restoreFromFile(ev) {
             }
             
             _isDbDirty = true;
-            dbSave(); refreshAll(); toast('Data restored!');
+            await _dbSaveLocal();
+            dbSave(true); 
+            refreshAll(); toast('Data restored!');
         } catch(err) { 
             toast('Invalid file', 'error'); 
         }
@@ -5371,6 +5035,94 @@ function doOptimize() {
     }, 800);
 }
 
+function openClearSpecificModal() {
+    // Force close settings modal if open, otherwise z-index issues can hide the clear modal.
+    const mSettings = document.getElementById('m-settings-quick');
+    if(mSettings && mSettings.classList.contains('on')) {
+        mSettings.classList.remove('on');
+    }
+
+    const sel = document.getElementById('clear-month-select');
+    if (!sel) return;
+
+    let dates = new Set();
+    
+    [db.transactions, db.dailyMoney, db.expenses].forEach(arr => {
+        arr.forEach(item => { if (item.datetime) dates.add(item.datetime.slice(0, 7)); });
+    });
+    
+    db.debts.forEach(p => {
+        p.entries.forEach(e => {
+            if (e.ts) {
+                const d = new Date(e.ts);
+                dates.add(d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0'));
+            } else if (e.date) {
+                dates.add(e.date.slice(0, 7));
+            }
+        });
+    });
+
+    const sortedMonths = Array.from(dates).sort((a,b) => b.localeCompare(a));
+    let opts = `<option value="all">${t('all_months')}</option>`;
+    sortedMonths.forEach(m => {
+        const [y, mm] = m.split('-');
+        const lbl = new Date(Number(y), Number(mm)-1, 1).toLocaleDateString('en-US', {month:'long', year:'numeric'});
+        opts += `<option value="${m}">${lbl}</option>`;
+    });
+    sel.innerHTML = opts;
+
+    setTimeout(() => { openM('m-clear-specific'); }, 150);
+}
+
+function confirmClearSpecific() {
+    const tab = document.getElementById('clear-tab-select').value;
+    const month = document.getElementById('clear-month-select').value;
+
+    let confirmMsg = `Are you sure you want to delete data for ${tab === 'all' ? 'All Tabs' : tab} ` +
+                     `in ${month === 'all' ? 'All Months' : month}? This cannot be undone.`;
+                     
+    if (db.settings.lang === 'mm') {
+        confirmMsg = `ဒေတာများကို ${tab === 'all' ? 'Tab အားလုံး' : tab} မှ ` +
+                     `${month === 'all' ? 'လအားလုံး' : month} အတွက် ဖျက်မည် သေချာပါသလား?`;
+    }
+
+    showConfirm('del', t('clear_specific'), confirmMsg, () => {
+        doClearSpecific(tab, month);
+    }, t('confirm_delete'));
+}
+
+function doClearSpecific(tab, month) {
+    const filterFn = (item) => {
+        let dtStr = item.datetime || item.date || '';
+        if (!dtStr && item.ts) {
+            const d = new Date(item.ts);
+            dtStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+        }
+        if (!dtStr) return true; 
+        
+        if (month !== 'all' && !dtStr.startsWith(month)) return true;
+        
+        trackDeletedId(item.id);
+        return false; 
+    };
+
+    if (tab === 'all' || tab === 'tx') db.transactions = db.transactions.filter(filterFn);
+    if (tab === 'all' || tab === 'dm') db.dailyMoney = db.dailyMoney.filter(filterFn);
+    if (tab === 'all' || tab === 'exp') db.expenses = db.expenses.filter(filterFn);
+    
+    if (tab === 'all' || tab === 'debts') {
+        db.debts.forEach(p => {
+            p.entries = p.entries.filter(filterFn);
+        });
+        db.debts = db.debts.filter(p => p.entries.length > 0);
+    }
+
+    dbSave();
+    closeM('m-clear-specific');
+    refreshAll();
+    toast('Deleted');
+}
+
 function clearAllData() {
     showConfirm('del', t('clear_data'), t('pw_conf_msg'), function() {
         if (currentUser && currentUser.email) {
@@ -5391,7 +5143,9 @@ async function doEraseAll() {
     if (textEl) textEl.textContent = (db.settings.lang === 'mm') ? 'ဖျက်နေပါသည်...' : 'Processing...';
     
     try { 
-        localStorage.removeItem(DB_KEY); 
+        await idbRemove();
+        localStorage.removeItem('pa_theme');
+        localStorage.removeItem(DB_KEY);
         if (currentUser) { 
             const sb = getSB(); 
             if (sb) { try { await sb.from('mmf_data').delete().eq('user_id', currentUser.id); } catch(e) {} try { await sb.auth.signOut(); } catch(e) {} } 
@@ -5821,33 +5575,35 @@ function initNetIndicators() {
 
 // ── INITIALIZATION ──
 document.addEventListener("DOMContentLoaded", () => {
-    dbLoad(); applySettings(); db.reminders.forEach(r => scheduleReminder(r));
-    isSyncEnabled = !!db.settings.syncEnabled; initNetIndicators(); initSliders();
+    dbLoad().then(() => {
+        applySettings(); db.reminders.forEach(r => scheduleReminder(r));
+        isSyncEnabled = !!db.settings.syncEnabled; initNetIndicators(); initSliders();
 
-    const authScreen = document.getElementById('authScreen');
-    if(authScreen) { authScreen.style.display = 'none'; authScreen.style.opacity = '0'; }
+        const authScreen = document.getElementById('authScreen');
+        if(authScreen) { authScreen.style.display = 'none'; authScreen.style.opacity = '0'; }
 
-    if (!db.settings.lock) { 
-        document.getElementById('lock').style.display = 'none'; document.getElementById('appWrap').classList.add('show'); setTimeout(refreshAll, 30); 
-    } else { document.getElementById('lock').style.display = 'flex'; }
-    
-    if (db.settings.userEmail !== null) {
-        setTimeout(async () => {
-            const sb = getSB();
-            if (sb) {
-                try {
-                    const { data } = await sb.auth.getSession();
-                    if (data && data.session && data.session.user) {
-                        currentUser = data.session.user; db.settings.userEmail = currentUser.email; db.settings.userId = currentUser.id; dbSave(true);
-                        if (isSyncEnabled) { await pullFromCloud(); startAutoSync(); }
-                        renderSettingsAccount(); renderSyncStatus(); updateNetIndicators(navigator.onLine ? 'online' : 'offline');
-                    } else {
-                        currentUser = null; isSyncEnabled = false; renderSettingsAccount(); renderSyncStatus(); updateNetIndicators('offline');
-                    }
-                } catch(e) { console.warn('Auth session error:', e); }
-            }
-        }, 1000);
-    } else { renderSettingsAccount(); renderSyncStatus(); }
+        if (!db.settings.lock) { 
+            document.getElementById('lock').style.display = 'none'; document.getElementById('appWrap').classList.add('show'); setTimeout(refreshAll, 30); 
+        } else { document.getElementById('lock').style.display = 'flex'; }
+        
+        if (db.settings.userEmail !== null) {
+            setTimeout(async () => {
+                const sb = getSB();
+                if (sb) {
+                    try {
+                        const { data } = await sb.auth.getSession();
+                        if (data && data.session && data.session.user) {
+                            currentUser = data.session.user; db.settings.userEmail = currentUser.email; db.settings.userId = currentUser.id; dbSave(true);
+                            if (isSyncEnabled) { await pullFromCloud(); startAutoSync(); }
+                            renderSettingsAccount(); renderSyncStatus(); updateNetIndicators(navigator.onLine ? 'online' : 'offline');
+                        } else {
+                            currentUser = null; isSyncEnabled = false; renderSettingsAccount(); renderSyncStatus(); updateNetIndicators('offline');
+                        }
+                    } catch(e) { console.warn('Auth session error:', e); }
+                }
+            }, 1000);
+        } else { renderSettingsAccount(); renderSyncStatus(); }
+    });
 });
 
 window.addEventListener('load', () => {
