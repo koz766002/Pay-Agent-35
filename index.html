@@ -33,7 +33,6 @@
         if (theme === 'dark') {
             document.documentElement.dataset.theme = 'dark';
         } else if (!theme) {
-            // Fallback check for first load migration
             const s = localStorage.getItem('pay_agent_v1') || localStorage.getItem('mmf_v3');
             if (s) {
                 const tdb = JSON.parse(s);
@@ -156,15 +155,25 @@
         .hero-grid { position:absolute; inset:0; background-image:repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(255,255,255,0.025) 28px,rgba(255,255,255,0.025) 29px),repeating-linear-gradient(90deg,transparent,transparent 28px,rgba(255,255,255,0.025) 28px,rgba(255,255,255,0.025) 29px); z-index:0; pointer-events:none; } 
         
         /* Seasonal Decor Animations */
-        .seasonal-decor { position:absolute; font-size:2.5rem; opacity:0.25; pointer-events:none; z-index:0; }
-        .decor-top-right { top:10px; right:15px; }
-        .decor-bottom-left { bottom:10px; left:15px; }
-        @keyframes floatAnim { 0%, 100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
-        @keyframes swingAnim { 0%, 100% { transform:rotate(-10deg); } 50% { transform:rotate(10deg); } }
-        @keyframes pulseAnim { 0%, 100% { transform:scale(1); opacity:0.2; } 50% { transform:scale(1.1); opacity:0.35; } }
-        .seasonal-decor.float { animation:floatAnim 3s ease-in-out infinite; }
+        .seasonal-decor { position:absolute; font-size:2.8rem; opacity:0.4; pointer-events:none; z-index:1; line-height:1; }
+        .decor-top-right { top:12px; right:14px; }
+        .decor-bottom-left { bottom:12px; left:14px; }
+        .decor-mid-right { top:50%; right:18px; transform:translateY(-50%); font-size:2rem; }
+        @keyframes floatAnim { 0%, 100% { transform:translateY(0) scale(1); } 50% { transform:translateY(-8px) scale(1.05); } }
+        @keyframes swingAnim { 0%, 100% { transform:rotate(-12deg); } 50% { transform:rotate(12deg); } }
+        @keyframes pulseAnim { 0%, 100% { transform:scale(1); opacity:0.35; } 50% { transform:scale(1.12); opacity:0.55; } }
+        @keyframes shimmerAnim { 0%, 100% { opacity:0.35; } 50% { opacity:0.6; } }
+        .seasonal-decor.float { animation:floatAnim 3.2s ease-in-out infinite; }
         .seasonal-decor.swing { animation:swingAnim 4s ease-in-out infinite; transform-origin:top center; }
-        .seasonal-decor.pulse { animation:pulseAnim 3s ease-in-out infinite; }
+        .seasonal-decor.pulse { animation:pulseAnim 2.8s ease-in-out infinite; }
+        .seasonal-decor.shimmer { animation:shimmerAnim 2s ease-in-out infinite; }
+        /* Festival Label Banner */
+        .festival-banner { position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.22); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border-top:1px solid rgba(255,255,255,0.12); padding:7px 16px; display:flex; align-items:center; justify-content:space-between; z-index:2; border-radius:0 0 var(--r) var(--r); }
+        .festival-banner-name { font-size:0.78rem; font-weight:700; color:#fff; letter-spacing:0.3px; display:flex; align-items:center; gap:6px; }
+        .festival-banner-name .fest-icon { font-size:1rem; }
+        .festival-countdown { font-size:0.68rem; font-weight:600; color:rgba(255,255,255,0.85); background:rgba(255,255,255,0.15); border-radius:999px; padding:3px 10px; white-space:nowrap; }
+        .festival-countdown.today { background:rgba(255,220,50,0.3); color:#fff; font-weight:800; }
+        .festival-countdown.soon { background:rgba(255,255,255,0.18); color:#fff; }
 
         .hero-lbl { font-size:0.75rem; opacity:.8; font-weight:500; margin-bottom:4px; position:relative; z-index:1; letter-spacing:0.4px; text-transform:uppercase; } 
         .hero-amt { font-size:calc(2.4rem * var(--fs-scale)); font-weight:800; letter-spacing:-1.5px; margin-bottom:20px; position:relative; z-index:1; font-family:'Inter',sans-serif; text-shadow:0 2px 8px rgba(0,0,0,0.1); cursor:default; user-select:none; } 
@@ -469,6 +478,9 @@
         .alert-toast-x:hover { color:var(--red); background:var(--redl); }
 
         .toast { position:fixed; top:20px; bottom:auto; left:50%; transform:translateX(-50%) translateY(-24px); background:var(--surface); color:var(--text); padding:13px 22px; border-radius:40px; font-size:0.88rem; font-weight:600; font-family:'Sora',sans-serif; z-index:10000; opacity:0; transition:opacity .25s cubic-bezier(.32,1.1,.64,1), transform .25s cubic-bezier(.32,1.1,.64,1); white-space:nowrap; pointer-events:none; box-shadow:0 6px 28px rgba(0,0,0,0.14),0 2px 8px rgba(0,0,0,0.08); border:1px solid var(--border); display:flex; align-items:center; gap:8px; max-width:calc(100% - 32px); }
+        .toast.has-undo { pointer-events:all; cursor:default; padding-right:14px; }
+        .toast-undo-btn { background:var(--accentg); color:#fff; border:none; border-radius:20px; padding:5px 14px; font-size:0.8rem; font-weight:700; cursor:pointer; font-family:'Sora',sans-serif; white-space:nowrap; flex-shrink:0; transition:opacity 0.15s; }
+        .toast-undo-btn:active { opacity:0.8; }
         [data-theme=dark] .toast { background:var(--surface2); border-color:var(--border2); } 
         .toast.on { opacity:1; transform:translateX(-50%) translateY(0); }
 
@@ -960,23 +972,23 @@
             
             <div class="fgrp">
                 <label class="flbl" data-i18n="select_tab">Select Tab</label>
-                <select class="fselect" id="clear-tab-select">
-                    <option value="all" data-i18n="all_tabs">All Tabs</option>
-                    <option value="tx" data-i18n="nav_tx">Transactions</option>
-                    <option value="dm" data-i18n="nav_dm">Daily Money</option>
-                    <option value="exp" data-i18n="nav_exp">Expenses</option>
-                    <option value="debts" data-i18n="nav_debts">Debts</option>
-                </select>
+                <div class="chips" id="clear-tab-chips">
+                    <div class="chip on" onclick="setClearTab('all', this)" data-i18n="all_tabs">All Tabs</div>
+                    <div class="chip" onclick="setClearTab('tx', this)" data-i18n="nav_tx">Txn</div>
+                    <div class="chip" onclick="setClearTab('dm', this)" data-i18n="nav_dm">Daily Money</div>
+                    <div class="chip" onclick="setClearTab('exp', this)" data-i18n="nav_exp">Expenses</div>
+                    <div class="chip" onclick="setClearTab('debts', this)" data-i18n="nav_debts">Debts</div>
+                </div>
             </div>
             
             <div class="fgrp">
                 <label class="flbl" data-i18n="select_month">Select Month</label>
-                <select class="fselect" id="clear-month-select">
+                <div class="chips" id="clear-month-chips" style="max-height:160px; overflow-y:auto; padding-bottom:8px; display:flex; flex-wrap:wrap; gap:8px;">
                     <!-- Populated by JS -->
-                </select>
+                </div>
             </div>
             
-            <button class="btn-p" style="background:var(--red); box-shadow:0 4px 14px rgba(224,62,62,0.25)" onclick="confirmClearSpecific()" data-i18n="confirm_delete">Delete Selected Data</button>
+            <button class="btn-p" style="background:var(--red); box-shadow:0 4px 14px rgba(224,62,62,0.25); margin-top: 20px;" onclick="confirmClearSpecific()" data-i18n="confirm_delete">Delete Selected Data</button>
             <button class="btn-s" onclick="closeM('m-clear-specific')" data-i18n="cancel">Cancel</button>
         </div>
     </div>
@@ -1130,9 +1142,9 @@
             <div class="fs-content">
                 <div class="fgrp">
                     <label class="flbl">Type</label>
-                    <div class="ttog">
-                        <button type="button" class="tbtn on exp" data-val="expense" onclick="setDmType('expense',this)" data-i18n="outcome_btn">Outcome</button>
-                        <button type="button" class="tbtn inc" data-val="income" onclick="setDmType('income',this)" data-i18n="income_btn">Income</button>
+                    <div class="ttog" id="dmTypeBtns">
+                        <button type="button" class="tbtn exp" data-val="expense" onclick="setDmType('expense',this)" data-i18n="outcome_btn">Out Come</button>
+                        <button type="button" class="tbtn inc" data-val="income" onclick="setDmType('income',this)" data-i18n="income_btn">In Come</button>
                     </div>
                 </div>
                 <div class="fgrp"><label class="flbl">Category</label><input class="finput" id="dm-cat" placeholder="Type category name..." autocomplete="off"><div class="ac-chips" id="dmCatChips"></div></div>
@@ -1140,7 +1152,7 @@
                 <div class="fgrp">
                     <label class="flbl">Payment Source</label>
                     <div class="ttog" id="dmSrcBtns">
-                        <button type="button" class="tbtn on inc" data-val="emoney" onclick="setDmSrc('emoney',this)" data-i18n="emoney_btn">E-Money</button>
+                        <button type="button" class="tbtn inc" data-val="emoney" onclick="setDmSrc('emoney',this)" data-i18n="emoney_btn">E-Money</button>
                         <button type="button" class="tbtn inc" data-val="cash" onclick="setDmSrc('cash',this)" data-i18n="cash_btn">Cash</button>
                     </div>
                 </div>
@@ -1161,9 +1173,9 @@
             <div class="fs-content">
                 <div class="fgrp">
                     <label class="flbl">Type</label>
-                    <div class="ttog">
-                        <button type="button" class="tbtn on exp" data-val="expense" onclick="setExpType('expense',this)" data-i18n="expense_btn">Expense</button>
-                        <button type="button" class="tbtn inc" data-val="income" onclick="setExpType('income',this)" data-i18n="income_btn">Income</button>
+                    <div class="ttog" id="expTypeBtns">
+                        <button type="button" class="tbtn exp" data-val="expense" onclick="setExpType('expense',this)" data-i18n="expense_btn">Expenses</button>
+                        <button type="button" class="tbtn inc" data-val="income" onclick="setExpType('income',this)" data-i18n="income_btn">In Come</button>
                     </div>
                 </div>
                 <div class="fgrp"><label class="flbl">Category</label><input class="finput" id="exp-cat" placeholder="Type category name..." autocomplete="off"><div class="ac-chips" id="catChips"></div></div>
@@ -1171,7 +1183,7 @@
                 <div class="fgrp">
                     <label class="flbl">Payment Source</label>
                     <div class="ttog" id="expSrcBtns">
-                        <button type="button" class="tbtn on inc" data-val="emoney" onclick="setExpSrc('emoney',this)" data-i18n="emoney_btn">E-Money</button>
+                        <button type="button" class="tbtn inc" data-val="emoney" onclick="setExpSrc('emoney',this)" data-i18n="emoney_btn">E-Money</button>
                         <button type="button" class="tbtn inc" data-val="cash" onclick="setExpSrc('cash',this)" data-i18n="cash_btn">Cash</button>
                     </div>
                 </div>
@@ -1193,13 +1205,13 @@
                 <div class="fgrp">
                     <label class="flbl">Type</label>
                     <div class="ttog">
-                        <button type="button" class="tbtn on debt" onclick="setDebtType('debt',this)">I Owe</button>
-                        <button type="button" class="tbtn cred" onclick="setDebtType('credit',this)">Owed to Me</button>
-                        <button type="button" class="tbtn trans" onclick="setDebtType('settled',this)">Settled</button>
+                        <button type="button" class="tbtn debt" data-val="debt" onclick="setDebtType('debt',this)">I Owe</button>
+                        <button type="button" class="tbtn cred" data-val="credit" onclick="setDebtType('credit',this)">Owed to Me</button>
+                        <button type="button" class="tbtn trans" data-val="settled" onclick="setDebtType('settled',this)">Settled</button>
                     </div>
                 </div>
                 <div class="fgrp"><label class="flbl">Person Name</label><input class="finput" id="debt-name" placeholder="Type person name..." autocomplete="off"><div class="ac-chips" id="debtNameChips"></div></div>
-                <div class="fgrp"><label class="flbl">Amount (MMK)</label><input class="finput mono" type="text" inputmode="numeric" id="debt-amt" placeholder="0" autocomplete="off" oninput="formatNumberInput(this)"></div>
+                <div class="fgrp"><label class="flbl">Amount (MMK)</label><input class="finput mono" type="text" inputmode="numeric" id="debt-amt" placeholder="0" autocomplete="off" oninput="formatNumberInput(this); _debtAmtAutoFilled=false;"></div>
                 <div class="fgrp"><label class="flbl">Note</label><input class="finput" id="debt-note" placeholder="Reason..." autocomplete="off"></div>
                 <div class="fgrp"><label class="flbl">Date &amp; Time</label><input class="finput" type="datetime-local" id="debt-date"></div>
                 <button class="btn-p" onclick="saveDebt()">Save</button>
@@ -1386,16 +1398,16 @@
                 <div class="fgrp">
                     <label class="flbl">Priority</label>
                     <div class="ttog" id="remPriorityBtns">
-                        <button type="button" class="tbtn on trans" onclick="setRemPriority('normal',this)">Normal</button>
-                        <button type="button" class="tbtn" style="color:var(--red)" onclick="setRemPriority('important',this)">⚠ Important</button>
+                        <button type="button" class="tbtn trans" data-val="normal" onclick="setRemPriority('normal',this)">Normal</button>
+                        <button type="button" class="tbtn" style="color:var(--red)" data-val="important" onclick="setRemPriority('important',this)">⚠ Important</button>
                     </div>
                 </div>
                 <div class="fgrp">
                     <label class="flbl">Repeat</label>
                     <div class="ttog" id="remTypeBtns">
-                        <button type="button" class="tbtn on trans" onclick="setRemType('daily',this)">Daily</button>
-                        <button type="button" class="tbtn" onclick="setRemType('once',this)">One-time</button>
-                        <button type="button" class="tbtn" onclick="setRemType('debt',this)">Debt Alert</button>
+                        <button type="button" class="tbtn on trans" data-val="daily" onclick="setRemType('daily',this)">Daily</button>
+                        <button type="button" class="tbtn" data-val="once" onclick="setRemType('once',this)">One-time</button>
+                        <button type="button" class="tbtn" data-val="debt" onclick="setRemType('debt',this)">Debt Alert</button>
                     </div>
                 </div>
                 <div class="fgrp"><label class="flbl">Date &amp; Time</label><input class="finput" type="datetime-local" id="rem-datetime"></div>
@@ -1692,6 +1704,11 @@ const TOAST_DICTS = {
 function toast(msg, type) { 
     const el = document.getElementById('toast'); 
     if (!el) return;
+    
+    if (_clearUndoTimer) { clearTimeout(_clearUndoTimer); _clearUndoTimer = null; }
+    _clearUndoBuffer = null;
+    el.classList.remove('has-undo'); 
+    
     let displayMsg = msg;
     if (db && db.settings && db.settings.lang === 'mm' && TOAST_DICTS[msg]) {
         displayMsg = TOAST_DICTS[msg];
@@ -1854,6 +1871,8 @@ let commChanged = false, feeChanged = false;
 let cPnL = null, cFlow = null, cExpPie = null; 
 let activeSubFolderId = null; 
 let editingProfileOldName = null;
+let _clearTab = 'all';
+let _clearMonth = 'all';
 
 function toggleActionMenu(el) {
   document.querySelectorAll('.titem.open').forEach(e => { if(e !== el) e.classList.remove('open'); });
@@ -1891,9 +1910,7 @@ function goPage(name, fromHistory = false) {
     
     if (name === 'reports') {
         buildRpDayStrip();
-        // Delay to ensure page is visible and canvases have proper dimensions
         setTimeout(() => {
-            // Destroy stale chart instances so canvas is fresh
             if (cPnL) { try { cPnL.destroy(); } catch(e) {} cPnL = null; }
             if (cFlow) { try { cFlow.destroy(); } catch(e) {} cFlow = null; }
             if (cExpPie) { try { cExpPie.destroy(); } catch(e) {} cExpPie = null; }
@@ -2009,7 +2026,7 @@ const I18N = {
     datetime_label:'Date & Time', save_transaction:'Save Transaction', type_label:'Type', category_label:'Category',
     payment_source:'Payment Source', description_label:'Description', date_label:'Date', person_name:'Person Name',
     cash_in_btn:'Cash In', cash_out_btn:'Cash Out', receive_btn:'Receive', send_btn:'Send', payment_btn:'Payment',
-    phone_bill_btn:'Phone Bill', transfer_btn:'Transfer', expense_btn:'Expense', income_btn:'Income',
+    phone_bill_btn:'Phone Bill', transfer_btn:'Transfer', expense_btn:'Expenses', income_btn:'In Come', outcome_btn: 'Out Come',
     i_owe_btn:'I Owe', owed_btn:'Owed to Me', settled_btn:'Settled', emoney_btn:'E-Money', cash_btn:'Cash',
     reminder_title_ph:'e.g. Check outstanding debts...', priority_label:'Priority', repeat_label:'Repeat',
     normal_btn:'Normal', important_btn:'⚠ Important', daily_btn:'Daily', once_btn:'One-time', debt_btn:'Debt Alert',
@@ -2062,7 +2079,7 @@ const I18N = {
     delete_rem_title: 'Delete Reminder', delete_rem_msg: 'Are you sure you want to delete this reminder?',
     todays_opening_history: "Today's Opening History", no_opening_history: "No opening history available.",
     clear_notif: 'Clear Notifications ', clear_history: 'Clear Daily Opening History', opt_success: 'Optimized successfully!',
-    alert_shortcut: 'Alert', outcome_btn: 'Outcome', exp_source_btn: 'Expense', inc_source_btn: 'Income',
+    alert_shortcut: 'Alert', exp_source_btn: 'Expenses', inc_source_btn: 'In Come',
     important_alert: 'Important Alert', pull_to_refresh: 'Release to update', refreshing: 'Refreshing...',
     auth_verify_email: 'Check your email to confirm your account, then sign in.', auth_failed: 'Authentication failed',
     signed_in_as: 'Signed in as ', sync_connecting: 'Connecting...', sync_loading: 'Loading...', sync_synced: 'Synced · ',
@@ -2110,7 +2127,7 @@ const I18N = {
     datetime_label:'ရက်စွဲ & အချိန်', save_transaction:'ငွေပေးငွေယူ သိမ်းရန်', type_label:'အမျိုးအစား', category_label:'အမျိုးအစား',
     payment_source:'ငွေပေးမှု ရင်းမြစ်', description_label:'ဖော်ပြချက်', date_label:'ရက်စွဲ', person_name:'လူပုဂ္ဂိုလ် အမည်',
     cash_in_btn:'ငွေဝင်', cash_out_btn:'ငွေထွက်', receive_btn:'လက်ခံ', send_btn:'ပို့', payment_btn:'ငွေပေး',
-    phone_bill_btn:'ဖုန်းဘေ', transfer_btn:'လွှဲ', expense_btn:'အသုံးစရိတ်', income_btn:'ဝင်ငွေ',
+    phone_bill_btn:'ဖုန်းဘေ', transfer_btn:'လွှဲ', expense_btn:'Expenses', income_btn:'In Come', outcome_btn: 'Out Come',
     i_owe_btn:'ကျွန်ုပ်ကြွေးရှိသည်', owed_btn:'ကျွန်ုပ်ငွေရမည်', settled_btn:'ပြေပြတ်ပြီ', emoney_btn:'E-Money', cash_btn:'ငွေသား',
     reminder_title_ph:'ဥပမာ - အကြွေးစစ်ဆေးရန်...', priority_label:'ဦးစားပေးမှု', repeat_label:'ထပ်ကြော်ငြာ',
     normal_btn:'ပုံမှန်', important_btn:'⚠ အရေးကြီး', daily_btn:'နေ့စဉ်', once_btn:'တစ်ကြိမ်', debt_btn:'အကြွေး သတိပေး',
@@ -2162,14 +2179,13 @@ const I18N = {
     delete_rem_title: 'သတိပေးချက် ဖျက်မည်', delete_rem_msg: 'ဤသတိပေးချက်ကို ဖျက်မည် သေချာပါသလား?',
     todays_opening_history: "ယနေ့ ဖွင့်သည့်ငွေ မှတ်တမ်း", no_opening_history: "ဖွင့်သည့်ငွေ မှတ်တမ်းများ မရှိသေးပါ။",
     clear_notif: 'အကြောင်းကြားချက်များ ဖျက်မည်', clear_history: 'နေ့ဦးအဖွင့်ငွေ မှတ်တမ်းများ ဖျက်မည်',
-    opt_success: 'ရှင်းလင်းခြင်း အောင်မြင်ပါသည်!', alert_shortcut: 'အရေးကြီး', outcome_btn: 'ထွက်ငွေ',
+    opt_success: 'ရှင်းလင်းခြင်း အောင်မြင်ပါသည်!', alert_shortcut: 'အရေးကြီး', exp_source_btn: 'Expenses', inc_source_btn: 'In Come',
     important_alert: 'အရေးကြီး သတိပေးချက်', pull_to_refresh: 'အပ်ဒိတ်လုပ်ရန် လွှတ်ပါ', refreshing: 'ပြန်လည်ရယူနေပါသည်...',
     auth_verify_email: 'အီးမေးလ်အတည်ပြုပြီးမှ အကောင့်ဝင်ပါ။', auth_failed: 'အကောင့်ဝင်ရန် မအောင်မြင်ပါ',
     signed_in_as: 'အကောင့်ဝင်ထားသည်: ', sync_connecting: 'ချိတ်ဆက်နေသည်...', sync_loading: 'ဒေါင်းလုပ်ဆွဲနေသည်...', 
     sync_synced: 'ချိတ်ဆက်ပြီးပြီ · ', sync_failed: 'ချိတ်ဆက်မှု မအောင်မြင်ပါ · ', sync_no_internet: 'အင်တာနက်မရှိပါ',
     lbl_today: 'ယနေ့', lbl_yesterday: 'မနေ့က',
     tap_to_view: 'ဆက်တင်တွင် ကြည့်ရန် နှိပ်ပါ',
-    exp_source_btn: 'အသုံးစရိတ်', inc_source_btn: 'ဝင်ငွေ',
     net_on: 'အသားတင်', daily_opening_sub: 'ဝန်ဆောင်မှုများ ကိုယ်တိုင်ထည့်ပါ။ နောက်ကြိမ်အတွက် သိမ်းထားမည်။',
     search_dm: 'ရက်စွဲ၊ အမျိုးအစား ရှာဖွေပါ...', search_exp: 'ရက်စွဲ၊ အမျိုးအစား ရှာဖွေပါ...',
     search_rp: 'ရက်စွဲ၊ မှတ်ချက် ရှာဖွေပါ...',
@@ -2237,22 +2253,26 @@ function applyLang() {
     document.querySelectorAll('#m-tx .flbl').forEach((l,i) => { if(tlk[i]) l.textContent = t(tlk[i]); }); 
     const sTx = document.querySelector('#m-tx .btn-p'); if(sTx) sTx.textContent = t('save_transaction');
     
-    const mDmTB = document.querySelectorAll('#m-dm .ttog:first-of-type .tbtn'); 
-    if(mDmTB[0]) mDmTB[0].textContent = t('outcome_btn'); 
-    if(mDmTB[1]) mDmTB[1].textContent = t('income_btn'); 
-    const mDmSB = document.querySelectorAll('#m-dm .ttog:last-of-type .tbtn'); 
-    if(mDmSB[0]) mDmSB[0].textContent = t('emoney_btn'); 
-    if(mDmSB[1]) mDmSB[1].textContent = t('cash_btn'); 
+    document.querySelectorAll('#dmTypeBtns button').forEach(b => {
+        if(b.dataset.val === 'expense') b.textContent = t('outcome_btn');
+        if(b.dataset.val === 'income') b.textContent = t('income_btn');
+    });
+    document.querySelectorAll('#dmSrcBtns button').forEach(b => {
+        if(b.dataset.val === 'emoney') b.textContent = t('emoney_btn');
+        if(b.dataset.val === 'cash') b.textContent = t('cash_btn');
+    });
     const dmlk = ['type_label','category_label','amount_label','payment_source','description_label','date_label']; 
     document.querySelectorAll('#m-dm .flbl').forEach((l,i) => { if(dmlk[i]) l.textContent = t(dmlk[i]); }); 
     const sDmBtn = document.querySelector('#m-dm .btn-p'); if(sDmBtn) sDmBtn.textContent = t('save');
 
-    const mExpTB = document.querySelectorAll('#m-exp .ttog:first-of-type .tbtn'); 
-    if(mExpTB[0]) mExpTB[0].textContent = t('expense_btn'); 
-    if(mExpTB[1]) mExpTB[1].textContent = t('income_btn'); 
-    const mExpSB = document.querySelectorAll('#m-exp .ttog:last-of-type .tbtn'); 
-    if(mExpSB[0]) mExpSB[0].textContent = t('emoney_btn'); 
-    if(mExpSB[1]) mExpSB[1].textContent = t('cash_btn'); 
+    document.querySelectorAll('#expTypeBtns button').forEach(b => {
+        if(b.dataset.val === 'expense') b.textContent = t('expense_btn');
+        if(b.dataset.val === 'income') b.textContent = t('income_btn');
+    });
+    document.querySelectorAll('#expSrcBtns button').forEach(b => {
+        if(b.dataset.val === 'emoney') b.textContent = t('emoney_btn');
+        if(b.dataset.val === 'cash') b.textContent = t('cash_btn');
+    });
     const explk = ['type_label','category_label','amount_label','payment_source','description_label','date_label']; 
     document.querySelectorAll('#m-exp .flbl').forEach((l,i) => { if(explk[i]) l.textContent = t(explk[i]); }); 
     const sExpBtn = document.querySelector('#m-exp .btn-p'); if(sExpBtn) sExpBtn.textContent = t('save');
@@ -2616,14 +2636,14 @@ let editReminderId = null;
 function setRemPriority(p) {
     remPriority = p; 
     document.querySelectorAll('#remPriorityBtns button').forEach(b => {
-        b.classList.toggle('on', (p === 'normal' && b.textContent.includes('Normal')) || (p === 'important' && b.textContent.includes('Important')) || (p === 'normal' && b.textContent.includes('ပုံမှန်')) || (p === 'important' && b.textContent.includes('အရေးကြီး')));
+        b.classList.toggle('on', b.dataset.val === p);
     });
 } 
 
 function setRemType(t_type) {
     remType = t_type; 
     document.querySelectorAll('#remTypeBtns button').forEach(b => {
-        b.classList.toggle('on', (t_type === 'daily' && b.textContent.includes('Daily')) || (t_type === 'once' && b.textContent.includes('One-time')) || (t_type === 'debt' && b.textContent.includes('Debt')) || (t_type === 'daily' && b.textContent.includes('နေ့စဉ်')) || (t_type === 'once' && b.textContent.includes('တစ်ကြိမ်')) || (t_type === 'debt' && b.textContent.includes('အကြွေး')));
+        b.classList.toggle('on', b.dataset.val === t_type);
     });
     const rdr = document.getElementById('remDateRow'); 
     if(rdr) rdr.style.display = (t_type === 'once' ? 'block' : 'none');
@@ -2942,122 +2962,165 @@ function updateSeasonalDecorations() {
     const hero = document.querySelector('.hero');
     if (!hero) return;
 
-    // Clean up previous emoji spans
-    document.querySelectorAll('.seasonal-decor').forEach(el => el.remove());
-    // Reset hero gradient to default first
+    // Clean up previous decorations
+    document.querySelectorAll('.seasonal-decor, .festival-banner').forEach(el => el.remove());
+    // Reset hero gradient
     document.documentElement.style.setProperty('--hero-bg', 'linear-gradient(135deg,#3B5BDB 0%,#7048E8 60%,#9B59B6 100%)');
 
     const today = new Date();
     const yr = today.getFullYear();
-    const mon = today.getMonth() + 1;
-    const day = today.getDate();
 
-    // Chinese New Year approximate dates (lunar ~late Jan/Feb)
+    // Chinese New Year approximate dates
     const chineseNYDates = {
         2024: { month: 2, date: 10 }, 2025: { month: 1, date: 29 },
         2026: { month: 2, date: 17 }, 2027: { month: 2, date: 6  },
         2028: { month: 1, date: 26 }, 2029: { month: 2, date: 13 },
         2030: { month: 2, date: 3  }
     };
-    // Eid al-Fitr approximate (varies yearly)
+    // Eid al-Fitr approximate
     const eidFitrDates = {
         2024: { month: 4, date: 10 }, 2025: { month: 3, date: 31 },
         2026: { month: 3, date: 20 }, 2027: { month: 3, date: 9  },
         2028: { month: 2, date: 26 }, 2029: { month: 2, date: 14 }
     };
-    // Deepavali (Diwali) approximate
+    // Deepavali
     const deepavaliDates = {
         2024: { month: 11, date: 1  }, 2025: { month: 10, date: 20 },
         2026: { month: 11, date: 8  }, 2027: { month: 10, date: 29 },
         2028: { month: 10, date: 17 }
     };
 
-    // ════ ALL HOLIDAYS LIST ════
     const holidays = [
-        { id: 'newyear',         month: 1,  date: 1  }, 
-        { id: 'karen_newyear',   month: 1,  date: 14 }, 
-        { id: 'union_day',       month: 2,  date: 12 }, 
-        { id: 'valentines',      month: 2,  date: 14 }, 
-        { id: 'tabaung',         month: 3,  date: 6  }, 
-        { id: 'thingyan',        month: 4,  date: 14 }, 
-        { id: 'myanmar_newyear', month: 4,  date: 17 }, 
-        { id: 'workers_day',     month: 5,  date: 1  }, 
-        { id: 'kasone',          month: 5,  date: 15 }, 
-        { id: 'waso_begin',      month: 7,  date: 10 }, 
-        { id: 'martyrs_day',     month: 7,  date: 19 }, 
-        { id: 'dhamma_day',      month: 8,  date: 1  }, 
-        { id: 'waso_end',        month: 9,  date: 15 }, 
-        { id: 'thadingyut',      month: 10, date: 17 }, 
-        { id: 'halloween',       month: 10, date: 31 }, 
-        { id: 'tazaungdaing',    month: 11, date: 15 }, 
-        { id: 'national_day',    month: 12, date: 10 }, 
-        { id: 'christmas',       month: 12, date: 25 }, 
-        { id: 'new_year_eve',    month: 12, date: 31 }, 
+        { id: 'newyear',         month: 1,  date: 1,  label: "New Year's Day",      icon: '🎆' },
+        { id: 'karen_newyear',   month: 1,  date: 14, label: 'Karen New Year',       icon: '🥁' },
+        { id: 'union_day',       month: 2,  date: 12, label: 'Union Day',            icon: '🇲🇲' },
+        { id: 'valentines',      month: 2,  date: 14, label: "Valentine's Day",      icon: '❤️' },
+        { id: 'tabaung',         month: 3,  date: 6,  label: 'Tabaung Full Moon',    icon: '🌕' },
+        { id: 'thingyan',        month: 4,  date: 13, label: 'သင်္ကြန် (Thingyan)',   icon: '💦' },
+        { id: 'myanmar_newyear', month: 4,  date: 17, label: 'Myanmar New Year',     icon: '🙏' },
+        { id: 'workers_day',     month: 5,  date: 1,  label: "Workers' Day",         icon: '🛠️' },
+        { id: 'kasone',          month: 5,  date: 15, label: 'Kasone Full Moon',     icon: '🌳' },
+        { id: 'waso_begin',      month: 7,  date: 10, label: 'Waso (Lent begins)',   icon: '🙏' },
+        { id: 'martyrs_day',     month: 7,  date: 19, label: "Martyrs' Day",        icon: '🥀' },
+        { id: 'dhamma_day',      month: 8,  date: 1,  label: 'Dhamma Day',          icon: '☸️' },
+        { id: 'waso_end',        month: 9,  date: 15, label: 'Waso End',            icon: '🌕' },
+        { id: 'thadingyut',      month: 10, date: 17, label: 'သာဓုကျောင်း (Thadingyut)', icon: '🏮' },
+        { id: 'halloween',       month: 10, date: 31, label: 'Halloween',           icon: '🎃' },
+        { id: 'tazaungdaing',    month: 11, date: 15, label: 'တန်ဆောင်တိုင် (Tazaungdaing)', icon: '🎈' },
+        { id: 'national_day',    month: 12, date: 10, label: 'National Day',        icon: '🇲🇲' },
+        { id: 'christmas',       month: 12, date: 25, label: 'Christmas',           icon: '🎄' },
+        { id: 'new_year_eve',    month: 12, date: 31, label: "New Year's Eve",      icon: '🥂' },
     ];
 
-    if (chineseNYDates[yr]) holidays.push({ id: 'chinese_ny', month: chineseNYDates[yr].month, date: chineseNYDates[yr].date });
-    if (eidFitrDates[yr])   holidays.push({ id: 'eid_fitr',   month: eidFitrDates[yr].month,   date: eidFitrDates[yr].date   });
-    if (deepavaliDates[yr]) holidays.push({ id: 'diwali',     month: deepavaliDates[yr].month,  date: deepavaliDates[yr].date });
-
-    let activeHoliday = null;
-    for (let h of holidays) {
-        const targetDate = new Date(yr, h.month - 1, h.date);
-        const diffDays = Math.round((today.getTime() - targetDate.getTime()) / 86400000);
-        if (diffDays >= -3 && diffDays <= 3) { activeHoliday = h.id; break; }
-    }
-
-    if (!activeHoliday) return;
+    if (chineseNYDates[yr]) holidays.push({ id: 'chinese_ny', month: chineseNYDates[yr].month, date: chineseNYDates[yr].date, label: 'Chinese New Year', icon: '🏮' });
+    if (eidFitrDates[yr])   holidays.push({ id: 'eid_fitr',   month: eidFitrDates[yr].month,   date: eidFitrDates[yr].date,   label: 'Eid al-Fitr',     icon: '🌙' });
+    if (deepavaliDates[yr]) holidays.push({ id: 'diwali',     month: deepavaliDates[yr].month,  date: deepavaliDates[yr].date, label: 'Diwali',          icon: '🪔' });
 
     const decorations = {
-        'thingyan':        { bg: 'linear-gradient(135deg, #1a6b9a 0%, #0d9e6c 50%, #1a8a7a 100%)', emojis: ['💦', '🌸'] },
-        'myanmar_newyear': { bg: 'linear-gradient(135deg, #D4790A 0%, #E8940A 50%, #C85E00 100%)', emojis: ['☀️', '🙏'] },
-        'newyear':         { bg: 'linear-gradient(135deg, #1a1a3e 0%, #2d1b6e 50%, #4a0080 100%)', emojis: ['🎆', '✨'] },
-        'new_year_eve':    { bg: 'linear-gradient(135deg, #0a0a2e 0%, #1a0050 50%, #2d0060 100%)', emojis: ['🥂', '🎇'] },
-        'karen_newyear':   { bg: 'linear-gradient(135deg, #c0392b 0%, #e74c3c 50%, #8e44ad 100%)', emojis: ['🥁', '🌾'] },
-        'union_day':       { bg: 'linear-gradient(135deg, #2c5f2e 0%, #1a6b2a 50%, #c0392b 100%)', emojis: ['🇲🇲', '🕊️'] },
-        'valentines':      { bg: 'linear-gradient(135deg, #c0392b 0%, #e91e63 50%, #ad1457 100%)', emojis: ['❤️', '🌹'] },
-        'tabaung':         { bg: 'linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #A0522D 100%)', emojis: ['🏜️', '🧘'] },
-        'workers_day':     { bg: 'linear-gradient(135deg, #b71c1c 0%, #c62828 50%, #1565c0 100%)', emojis: ['🛠️', '💪'] },
-        'kasone':          { bg: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #388e3c 100%)', emojis: ['🌳', '💧'] },
-        'waso_begin':      { bg: 'linear-gradient(135deg, #4a148c 0%, #6a1b9a 50%, #7b1fa2 100%)', emojis: ['🙏', '🕯️'] },
-        'martyrs_day':     { bg: 'linear-gradient(135deg, #1a1a2e 0%, #3d1a1a 50%, #5d2222 100%)', emojis: ['🥀', '🇲🇲'] },
-        'dhamma_day':      { bg: 'linear-gradient(135deg, #4a148c 0%, #880e4f 50%, #bf360c 100%)', emojis: ['☸️', '🌸'] },
-        'waso_end':        { bg: 'linear-gradient(135deg, #e65100 0%, #bf360c 50%, #4e342e 100%)', emojis: ['🌕', '🙏'] },
-        'thadingyut':      { bg: 'linear-gradient(135deg, #f57f17 0%, #e65100 50%, #bf360c 100%)', emojis: ['🏮', '✨'] },
-        'tazaungdaing':    { bg: 'linear-gradient(135deg, #e65100 0%, #6a1b9a 50%, #880e4f 100%)', emojis: ['🎈', '🔥'] },
-        'national_day':    { bg: 'linear-gradient(135deg, #1a237e 0%, #283593 50%, #c62828 100%)', emojis: ['🇲🇲', '🎉'] },
-        'christmas':       { bg: 'linear-gradient(135deg, #1b5e20 0%, #2e7d32 50%, #b71c1c 100%)', emojis: ['🎄', '❄️'] },
-        'halloween':       { bg: 'linear-gradient(135deg, #4a0000 0%, #7f3f00 50%, #1a0030 100%)', emojis: ['🎃', '🦇'] },
-        'chinese_ny':      { bg: 'linear-gradient(135deg, #b71c1c 0%, #c62828 50%, #f9a825 100%)', emojis: ['🏮', '🐉'] },
-        'eid_fitr':        { bg: 'linear-gradient(135deg, #1a3c2e 0%, #1b5e20 50%, #004d40 100%)', emojis: ['🌙', '🕌'] },
-        'diwali':          { bg: 'linear-gradient(135deg, #e65100 0%, #f57f17 50%, #6a1b9a 100%)', emojis: ['🪔', '✨'] },
+        'thingyan':        { bg: 'linear-gradient(135deg, #006994 0%, #0891B2 40%, #059669 100%)', emojis: ['💦', '🌸'], anim: ['float', 'swing'] },
+        'myanmar_newyear': { bg: 'linear-gradient(135deg, #B45309 0%, #D97706 40%, #92400E 100%)', emojis: ['☀️', '🙏'], anim: ['pulse', 'float'] },
+        'newyear':         { bg: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4c1d95 100%)', emojis: ['🎆', '✨'], anim: ['float', 'shimmer'] },
+        'new_year_eve':    { bg: 'linear-gradient(135deg, #0c0a1e 0%, #1e1b4b 50%, #2e1065 100%)', emojis: ['🥂', '🎇'], anim: ['float', 'shimmer'] },
+        'karen_newyear':   { bg: 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #6b21a8 100%)', emojis: ['🥁', '🌾'], anim: ['swing', 'float'] },
+        'union_day':       { bg: 'linear-gradient(135deg, #14532d 0%, #166534 50%, #7f1d1d 100%)', emojis: ['🇲🇲', '🕊️'], anim: ['float', 'pulse'] },
+        'valentines':      { bg: 'linear-gradient(135deg, #9f1239 0%, #be185d 50%, #831843 100%)', emojis: ['❤️', '🌹'], anim: ['pulse', 'float'] },
+        'tabaung':         { bg: 'linear-gradient(135deg, #78350f 0%, #92400e 50%, #7c2d12 100%)', emojis: ['🌕', '🧘'], anim: ['pulse', 'float'] },
+        'workers_day':     { bg: 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #1e3a5f 100%)', emojis: ['🛠️', '💪'], anim: ['float', 'pulse'] },
+        'kasone':          { bg: 'linear-gradient(135deg, #14532d 0%, #166534 50%, #15803d 100%)', emojis: ['🌳', '💧'], anim: ['float', 'swing'] },
+        'waso_begin':      { bg: 'linear-gradient(135deg, #3b0764 0%, #4a044e 50%, #500724 100%)', emojis: ['🙏', '🕯️'], anim: ['pulse', 'shimmer'] },
+        'martyrs_day':     { bg: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #3b0f0f 100%)', emojis: ['🥀', '🇲🇲'], anim: ['float', 'pulse'] },
+        'dhamma_day':      { bg: 'linear-gradient(135deg, #3b0764 0%, #500724 50%, #7c2d12 100%)', emojis: ['☸️', '🌸'], anim: ['float', 'pulse'] },
+        'waso_end':        { bg: 'linear-gradient(135deg, #7c2d12 0%, #9a3412 50%, #431407 100%)', emojis: ['🌕', '🙏'], anim: ['pulse', 'float'] },
+        'thadingyut':      { bg: 'linear-gradient(135deg, #78350f 0%, #92400e 50%, #7c2d12 100%)', emojis: ['🏮', '✨'], anim: ['float', 'shimmer'] },
+        'tazaungdaing':    { bg: 'linear-gradient(135deg, #7c2d12 0%, #4c1d95 50%, #500724 100%)', emojis: ['🎈', '🔥'], anim: ['float', 'swing'] },
+        'national_day':    { bg: 'linear-gradient(135deg, #1e3a5f 0%, #1e40af 50%, #7f1d1d 100%)', emojis: ['🇲🇲', '🎉'], anim: ['float', 'pulse'] },
+        'christmas':       { bg: 'linear-gradient(135deg, #14532d 0%, #166534 50%, #7f1d1d 100%)', emojis: ['🎄', '❄️'], anim: ['float', 'swing'] },
+        'halloween':       { bg: 'linear-gradient(135deg, #3b0000 0%, #7c2d00 50%, #1a0030 100%)', emojis: ['🎃', '🦇'], anim: ['float', 'swing'] },
+        'chinese_ny':      { bg: 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #78350f 100%)', emojis: ['🏮', '🐉'], anim: ['swing', 'float'] },
+        'eid_fitr':        { bg: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #004d40 100%)', emojis: ['🌙', '🕌'], anim: ['pulse', 'float'] },
+        'diwali':          { bg: 'linear-gradient(135deg, #7c2d12 0%, #78350f 50%, #3b0764 100%)', emojis: ['🪔', '✨'], anim: ['float', 'shimmer'] },
     };
 
-    if (decorations[activeHoliday]) {
-        document.documentElement.style.setProperty('--hero-bg', decorations[activeHoliday].bg);
-        const emojis = decorations[activeHoliday].emojis;
-        if(emojis && emojis.length > 0) {
-            const dec1 = document.createElement('div');
-            dec1.className = 'seasonal-decor decor-top-right float';
-            dec1.textContent = emojis[0];
-            hero.appendChild(dec1);
+    // Find the nearest upcoming/current holiday within 7 days (show 3 days before + 3 days on + 3 days after)
+    let activeHoliday = null;
+    let activeDiff = 999;
+    let activeHolidayData = null;
 
-            if(emojis.length > 1) {
-                const dec2 = document.createElement('div');
-                dec2.className = 'seasonal-decor decor-bottom-left swing';
-                dec2.textContent = emojis[1];
-                hero.appendChild(dec2);
+    for (let h of holidays) {
+        const targetDate = new Date(yr, h.month - 1, h.date);
+        // Normalize to midnight for day comparison
+        const todayMidnight = new Date(yr, today.getMonth(), today.getDate());
+        const diffDays = Math.round((targetDate.getTime() - todayMidnight.getTime()) / 86400000);
+        // Show if within -3 to +3 days window
+        if (diffDays >= -3 && diffDays <= 3) {
+            if (Math.abs(diffDays) < Math.abs(activeDiff)) {
+                activeHoliday = h.id;
+                activeDiff = diffDays;
+                activeHolidayData = h;
             }
         }
     }
-}
 
+    if (!activeHoliday || !decorations[activeHoliday]) return;
+
+    const dec = decorations[activeHoliday];
+
+    // Apply gradient background
+    document.documentElement.style.setProperty('--hero-bg', dec.bg);
+
+    // Add emoji decorations - larger and more visible
+    const positions = [
+        { className: 'seasonal-decor decor-top-right', animClass: dec.anim[0] || 'float' },
+        { className: 'seasonal-decor decor-bottom-left', animClass: dec.anim[1] || 'swing' },
+    ];
+
+    dec.emojis.forEach((emoji, i) => {
+        if (i >= positions.length) return;
+        const el = document.createElement('div');
+        el.className = positions[i].className + ' ' + positions[i].animClass;
+        el.textContent = emoji;
+        hero.appendChild(el);
+    });
+
+    // Add festival banner with name & countdown
+    const banner = document.createElement('div');
+    banner.className = 'festival-banner';
+
+    let countdownText = '';
+    let countdownClass = 'festival-countdown';
+    if (activeDiff === 0) {
+        countdownText = '🎉 Today!';
+        countdownClass += ' today';
+    } else if (activeDiff > 0) {
+        countdownText = `${activeDiff} day${activeDiff > 1 ? 's' : ''} away →`;
+        countdownClass += ' soon';
+    } else {
+        countdownText = `${Math.abs(activeDiff)} day${Math.abs(activeDiff) > 1 ? 's' : ''} ago`;
+        countdownClass += ' soon';
+    }
+
+    banner.innerHTML = `
+        <div class="festival-banner-name">
+            <span class="fest-icon">${activeHolidayData.icon || dec.emojis[0]}</span>
+            <span>${activeHolidayData.label}</span>
+        </div>
+        <div class="${countdownClass}">${countdownText}</div>
+    `;
+    hero.appendChild(banner);
+
+    // Adjust hero padding-bottom to accommodate banner
+    hero.style.paddingBottom = '52px';
+}
 function updateHero() { 
     document.getElementById('h-total').textContent = fmt(totalBalance()); 
     document.getElementById('h-cash').textContent = fmt(db.cashBalance || 0); 
     document.getElementById('h-emoney').textContent = fmt(totalEmoney()); 
     const el = document.getElementById('h-date'); 
     if(el) el.textContent = new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'}); 
+    
+    // Reset hero padding before decoration (may set it if festival banner added)
+    const heroEl = document.querySelector('.hero');
+    if (heroEl) heroEl.style.paddingBottom = '';
     
     updateSeasonalDecorations(); 
 }
@@ -3452,12 +3515,12 @@ const applyGlobalSearch = (arr, srch) => {
 
 // ── DAILY MONEY (DM) ──
 function setDmType(t_type, btn) { 
-    dmType = t_type; 
-    document.querySelectorAll('#m-dm .ttog:first-of-type button').forEach(b => b.classList.remove('on')); 
+    dmType = t_type; db.settings.lastDmType = t_type; dbSave(true);
+    document.querySelectorAll('#dmTypeBtns button').forEach(b => b.classList.remove('on')); 
     if(btn) btn.classList.add('on'); 
 }
 function setDmSrc(s, btn) { 
-    dmSrc = s; 
+    dmSrc = s; db.settings.lastDmSrc = s; dbSave(true);
     document.querySelectorAll('#dmSrcBtns button').forEach(b => b.classList.remove('on')); 
     if(btn) btn.classList.add('on'); 
 }
@@ -3538,8 +3601,8 @@ function openDmModal(id = null) {
         const e = db.dailyMoney.find(x => x.id === id); if(!e) return; 
         dmType = e.expType; dmSrc = e.source || 'emoney'; 
         
-        document.querySelectorAll('#m-dm .ttog:first-of-type button').forEach(b => b.classList.toggle('on', (dmType === 'expense' && b.dataset.val === 'expense') || (dmType === 'income' && b.dataset.val === 'income'))); 
-        document.querySelectorAll('#dmSrcBtns button').forEach(b => b.classList.toggle('on', (dmSrc === 'emoney' && b.dataset.val === 'emoney') || (dmSrc === 'cash' && b.dataset.val === 'cash'))); 
+        document.querySelectorAll('#dmTypeBtns button').forEach(b => b.classList.toggle('on', b.dataset.val === dmType)); 
+        document.querySelectorAll('#dmSrcBtns button').forEach(b => b.classList.toggle('on', b.dataset.val === dmSrc)); 
         
         document.getElementById('dm-cat').value = e.category || ''; 
         document.getElementById('dm-amt').value = (e.amount || '').toLocaleString('en-US'); 
@@ -3547,8 +3610,10 @@ function openDmModal(id = null) {
         const dtVal = e.datetime || (getDateStr(e.datetime) + 'T' + nowDT().split('T')[1]); 
         document.getElementById('dm-date').value = dtVal.length > 10 ? dtVal.slice(0,16) : dtVal + 'T' + nowDT().split('T')[1]; 
     } else { 
-        document.querySelectorAll('#m-dm .ttog:first-of-type button').forEach(b => b.classList.toggle('on', (dmType === 'expense' && b.dataset.val === 'expense') || (dmType === 'income' && b.dataset.val === 'income')));
-        document.querySelectorAll('#dmSrcBtns button').forEach(b => b.classList.toggle('on', (dmSrc === 'emoney' && b.dataset.val === 'emoney') || (dmSrc === 'cash' && b.dataset.val === 'cash')));
+        dmType = db.settings.lastDmType || dmType || 'expense'; 
+        dmSrc = db.settings.lastDmSrc || dmSrc || 'emoney';
+        document.querySelectorAll('#dmTypeBtns button').forEach(b => b.classList.toggle('on', b.dataset.val === dmType));
+        document.querySelectorAll('#dmSrcBtns button').forEach(b => b.classList.toggle('on', b.dataset.val === dmSrc));
         
         document.getElementById('dm-cat').value = ''; document.getElementById('dm-amt').value = ''; 
         document.getElementById('dm-note').value = ''; document.getElementById('dm-date').value = nowDT(); 
@@ -3722,12 +3787,12 @@ function renderDmPage() {
 
 // ── EXPENSES (NEW STANDALONE TAB) ──
 function setExpType(t_type, btn) { 
-    expType = t_type; 
-    document.querySelectorAll('#m-exp .ttog:first-of-type button').forEach(b => b.classList.remove('on')); 
+    expType = t_type; db.settings.lastExpType = t_type; dbSave(true);
+    document.querySelectorAll('#expTypeBtns button').forEach(b => b.classList.remove('on')); 
     if(btn) btn.classList.add('on'); 
 }
 function setExpSrc(s, btn) { 
-    expSrc = s; 
+    expSrc = s; db.settings.lastExpSrc = s; dbSave(true);
     document.querySelectorAll('#expSrcBtns button').forEach(b => b.classList.remove('on')); 
     if(btn) btn.classList.add('on'); 
 }
@@ -3820,8 +3885,8 @@ function openExpModal(id = null) {
         const e = db.expenses.find(x => x.id === id); if(!e) return; 
         expType = e.expType; expSrc = e.source || 'emoney'; 
         
-        document.querySelectorAll('#m-exp .ttog:first-of-type button').forEach(b => b.classList.toggle('on', (expType === 'expense' && b.dataset.val === 'expense') || (expType === 'income' && b.dataset.val === 'income'))); 
-        document.querySelectorAll('#expSrcBtns button').forEach(b => b.classList.toggle('on', (expSrc === 'emoney' && b.dataset.val === 'emoney') || (expSrc === 'cash' && b.dataset.val === 'cash'))); 
+        document.querySelectorAll('#expTypeBtns button').forEach(b => b.classList.toggle('on', b.dataset.val === expType)); 
+        document.querySelectorAll('#expSrcBtns button').forEach(b => b.classList.toggle('on', b.dataset.val === expSrc)); 
         
         document.getElementById('exp-cat').value = e.category || ''; 
         document.getElementById('exp-amt').value = (e.amount || '').toLocaleString('en-US'); 
@@ -3829,8 +3894,10 @@ function openExpModal(id = null) {
         const dtVal = e.datetime || (getDateStr(e.datetime) + 'T' + nowDT().split('T')[1]); 
         document.getElementById('exp-date').value = dtVal.length > 10 ? dtVal.slice(0,16) : dtVal + 'T' + nowDT().split('T')[1]; 
     } else { 
-        document.querySelectorAll('#m-exp .ttog:first-of-type button').forEach(b => b.classList.toggle('on', (expType === 'expense' && b.dataset.val === 'expense') || (expType === 'income' && b.dataset.val === 'income')));
-        document.querySelectorAll('#expSrcBtns button').forEach(b => b.classList.toggle('on', (expSrc === 'emoney' && b.dataset.val === 'emoney') || (expSrc === 'cash' && b.dataset.val === 'cash')));
+        expType = db.settings.lastExpType || expType || 'expense'; 
+        expSrc = db.settings.lastExpSrc || expSrc || 'emoney';
+        document.querySelectorAll('#expTypeBtns button').forEach(b => b.classList.toggle('on', b.dataset.val === expType));
+        document.querySelectorAll('#expSrcBtns button').forEach(b => b.classList.toggle('on', b.dataset.val === expSrc));
         
         document.getElementById('exp-cat').value = ''; 
         document.getElementById('exp-amt').value = ''; 
@@ -4020,14 +4087,46 @@ function toggleSubFolder(id) {
     }
 }
 
-function setDebtType(t_obj, btn) { 
-    debtType = t_obj; 
-    document.querySelectorAll('#m-debt .ttog button').forEach(b => b.classList.remove('on')); 
-    if(btn) btn.classList.add('on'); 
+let _debtAmtAutoFilled = false;
+function _getDebtNetForName(nameVal) {
+    if (!nameVal) return 0;
+    const profile = db.debts.find(p => p.name.toLowerCase() === nameVal.toLowerCase());
+    if (!profile) return 0;
+    let cSum=0, dSum=0, sSum=0;
+    profile.entries.forEach(e => {
+        if(e.isPaid) return;
+        if (e.debtType === 'credit') cSum += Number(e.amount || 0);
+        else if (e.debtType === 'debt') dSum += Number(e.amount || 0);
+        else if (e.debtType === 'settled') sSum += Number(e.amount || 0);
+    });
+    const raw = cSum - dSum;
+    const net = raw >= 0 ? raw - sSum : raw + sSum;
+    return Math.abs(net);
+}
+function setDebtType(t_obj, btn) {
+    const prevType = debtType;
+    debtType = t_obj;
+    document.querySelectorAll('#m-debt .ttog button').forEach(b => b.classList.remove('on'));
+    if(btn) btn.classList.add('on');
+    const amtEl = document.getElementById('debt-amt');
+    if (t_obj === 'settled') {
+        const nameVal = (document.getElementById('debt-name').value || '').trim();
+        const netAbs = _getDebtNetForName(nameVal);
+        if (netAbs > 0 && amtEl) {
+            amtEl.value = netAbs.toLocaleString('en-US');
+            _debtAmtAutoFilled = true;
+        }
+    } else {
+        if (prevType === 'settled' && _debtAmtAutoFilled && amtEl && !editDebtEntryId) {
+            amtEl.value = '';
+            _debtAmtAutoFilled = false;
+        }
+    }
 }
 
 function openDebtModal(entryId = null, personName = null, subFolderId = null) {
     editDebtEntryId = entryId; activeSubFolderId = subFolderId; buildDebtNameChips();
+    _debtAmtAutoFilled = false;
     if(entryId) { 
         let found = null, fname = ''; 
         for(const p of db.debts) {
@@ -4037,7 +4136,7 @@ function openDebtModal(entryId = null, personName = null, subFolderId = null) {
         if(!found) return; 
         
         debtType = found.debtType; 
-        document.querySelectorAll('#m-debt .ttog button').forEach(b => b.classList.toggle('on', (debtType === 'debt' && b.textContent.includes(t('i_owe_btn'))) || (debtType === 'credit' && b.textContent.includes(t('owed_btn'))) || (debtType === 'settled' && b.textContent.includes(t('settled_btn'))) || (debtType === 'debt' && b.textContent.includes('I Owe')) || (debtType === 'credit' && b.textContent.includes('Owed')) || (debtType === 'settled' && b.textContent.includes('Settled')))); 
+        document.querySelectorAll('#m-debt .ttog button').forEach(b => b.classList.toggle('on', b.dataset.val === debtType)); 
         
         document.getElementById('debt-name').value = fname; 
         document.getElementById('debt-amt').value = (found.amount || '').toLocaleString('en-US'); 
@@ -4045,8 +4144,9 @@ function openDebtModal(entryId = null, personName = null, subFolderId = null) {
         const foundDt = found.ts ? (() => { const d = new Date(found.ts); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0'); })() : (found.date || nowDT()); 
         document.getElementById('debt-date').value = foundDt; 
         document.getElementById('debtMTitle').textContent = t('edit_debt'); 
-    } else { 
-        document.querySelectorAll('#m-debt .ttog button').forEach(b => b.classList.toggle('on', (debtType === 'debt' && b.textContent.includes(t('i_owe_btn'))) || (debtType === 'credit' && b.textContent.includes(t('owed_btn'))) || (debtType === 'settled' && b.textContent.includes(t('settled_btn'))) || (debtType === 'debt' && b.textContent.includes('I Owe')) || (debtType === 'credit' && b.textContent.includes('Owed')) || (debtType === 'settled' && b.textContent.includes('Settled'))));
+    } else {
+        debtType = 'debt';
+        document.querySelectorAll('#m-debt .ttog button').forEach(b => b.classList.toggle('on', b.dataset.val === 'debt'));
         
         document.getElementById('debt-name').value = personName || ''; 
         document.getElementById('debt-amt').value = ''; 
@@ -4428,24 +4528,41 @@ function openDebtBreakdown(type) {
 }
 
 function renderDebts() {
-    var srch = (document.getElementById('debtSearch').value || '').toLowerCase();
+    var srch = (document.getElementById('debtSearch').value || '').toLowerCase().trim();
     
+    const MONTH_NAMES = ['january','february','march','april','may','june','july','august','september','october','november','december'];
+    const MONTH_SHORT = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+    
+    function debtEntryMatchesSearch(e, s) {
+        if (!s) return true;
+        const dStr = e.datetime || e.date || (e.ts ? new Date(e.ts).toISOString() : '');
+        const fmtD = fmtDate(getDateStr(dStr)).toLowerCase();
+        let customDateStr = '';
+        let monthName = '', yearStr = '';
+        if (dStr.includes('-')) {
+            const parts = dStr.split('T')[0].split('-');
+            const y = parts[0], m = parts[1], d = parts[2];
+            if (y && m && d) {
+                customDateStr = `${parseInt(d)}.${parseInt(m)}.${y}`;
+                const mIdx = parseInt(m) - 1;
+                if (mIdx >= 0 && mIdx < 12) {
+                    monthName = MONTH_NAMES[mIdx] + ' ' + MONTH_SHORT[mIdx];
+                }
+                yearStr = y;
+            }
+        }
+        return (e.note||'').toLowerCase().includes(s) || 
+               dStr.toLowerCase().includes(s) || 
+               fmtD.includes(s) ||
+               customDateStr.includes(s) ||
+               monthName.includes(s) ||
+               yearStr.includes(s);
+    }
+
     var profiles = db.debts.filter(function(p) { 
         if(!srch) return true;
         if(p.name.toLowerCase().includes(srch)) return true;
-        return p.entries.some(e => {
-            const dStr = e.datetime || e.date || '';
-            const fmtD = fmtDate(getDateStr(dStr)).toLowerCase();
-            let customDateStr = '';
-            if (dStr.includes('-')) {
-                const [y, m, d] = dStr.split('T')[0].split('-');
-                customDateStr = `${parseInt(d)}.${parseInt(m)}.${y}`;
-            }
-            return (e.note||'').toLowerCase().includes(srch) || 
-                   dStr.includes(srch) || 
-                   fmtD.includes(srch) ||
-                   customDateStr.includes(srch);
-        });
+        return p.entries.some(e => debtEntryMatchesSearch(e, srch));
     });
     
     var totalOwe = 0, totalRecv = 0;
@@ -4475,19 +4592,7 @@ function renderDebts() {
                     if(!sf.profileNames || !sf.profileNames.includes(p.name)) return false;
                     if(!srch) return true;
                     if(p.name.toLowerCase().includes(srch)) return true;
-                    return p.entries.some(e => {
-                        const dStr = e.datetime || e.date || '';
-                        const fmtD = fmtDate(getDateStr(dStr)).toLowerCase();
-                        let customDateStr = '';
-                        if (dStr.includes('-')) {
-                            const [y, m, d] = dStr.split('T')[0].split('-');
-                            customDateStr = `${parseInt(d)}.${parseInt(m)}.${y}`;
-                        }
-                        return (e.note||'').toLowerCase().includes(srch) || 
-                               dStr.includes(srch) || 
-                               fmtD.includes(srch) ||
-                               customDateStr.includes(srch);
-                    });
+                    return p.entries.some(e => debtEntryMatchesSearch(e, srch));
                 });
                 
                 var sfNet = 0;
@@ -5035,15 +5140,26 @@ function doOptimize() {
     }, 800);
 }
 
+function setClearTab(tabId, el) {
+    _clearTab = tabId;
+    document.querySelectorAll('#clear-tab-chips .chip').forEach(c => c.classList.remove('on'));
+    el.classList.add('on');
+}
+
+function setClearMonth(monthVal, el) {
+    _clearMonth = monthVal;
+    document.querySelectorAll('#clear-month-chips .chip').forEach(c => c.classList.remove('on'));
+    el.classList.add('on');
+}
+
 function openClearSpecificModal() {
-    // Force close settings modal if open, otherwise z-index issues can hide the clear modal.
     const mSettings = document.getElementById('m-settings-quick');
     if(mSettings && mSettings.classList.contains('on')) {
         mSettings.classList.remove('on');
     }
 
-    const sel = document.getElementById('clear-month-select');
-    if (!sel) return;
+    const chipsContainer = document.getElementById('clear-month-chips');
+    if (!chipsContainer) return;
 
     let dates = new Set();
     
@@ -5063,27 +5179,37 @@ function openClearSpecificModal() {
     });
 
     const sortedMonths = Array.from(dates).sort((a,b) => b.localeCompare(a));
-    let opts = `<option value="all">${t('all_months')}</option>`;
+    
+    // Reset state
+    _clearTab = 'all';
+    _clearMonth = 'all';
+    document.querySelectorAll('#clear-tab-chips .chip').forEach(c => c.classList.remove('on'));
+    document.querySelector('#clear-tab-chips .chip').classList.add('on'); // First one is 'All Tabs'
+
+    let optsHtml = `<div class="chip on" onclick="setClearMonth('all', this)">${t('all_months')}</div>`;
     sortedMonths.forEach(m => {
         const [y, mm] = m.split('-');
         const lbl = new Date(Number(y), Number(mm)-1, 1).toLocaleDateString('en-US', {month:'long', year:'numeric'});
-        opts += `<option value="${m}">${lbl}</option>`;
+        optsHtml += `<div class="chip" onclick="setClearMonth('${m}', this)">${lbl}</div>`;
     });
-    sel.innerHTML = opts;
+    chipsContainer.innerHTML = optsHtml;
 
     setTimeout(() => { openM('m-clear-specific'); }, 150);
 }
 
 function confirmClearSpecific() {
-    const tab = document.getElementById('clear-tab-select').value;
-    const month = document.getElementById('clear-month-select').value;
+    const tab = _clearTab;
+    const month = _clearMonth;
 
-    let confirmMsg = `Are you sure you want to delete data for ${tab === 'all' ? 'All Tabs' : tab} ` +
-                     `in ${month === 'all' ? 'All Months' : month}? This cannot be undone.`;
-                     
+    let tabName = tab === 'all' ? 'All Tabs' : tab;
+    if (db.settings.lang === 'mm') tabName = tab === 'all' ? 'Tab အားလုံး' : tab;
+    
+    let monthName = month === 'all' ? 'All Months' : month;
+    if (db.settings.lang === 'mm') monthName = month === 'all' ? 'လအားလုံး' : month;
+
+    let confirmMsg = `Are you sure you want to delete data for ${tabName} in ${monthName}? This cannot be undone.`;
     if (db.settings.lang === 'mm') {
-        confirmMsg = `ဒေတာများကို ${tab === 'all' ? 'Tab အားလုံး' : tab} မှ ` +
-                     `${month === 'all' ? 'လအားလုံး' : month} အတွက် ဖျက်မည် သေချာပါသလား?`;
+        confirmMsg = `ဒေတာများကို ${tabName} မှ ${monthName} အတွက် ဖျက်မည် သေချာပါသလား?`;
     }
 
     showConfirm('del', t('clear_specific'), confirmMsg, () => {
@@ -5091,7 +5217,20 @@ function confirmClearSpecific() {
     }, t('confirm_delete'));
 }
 
+// Undo buffer for Clear Specific Data
+let _clearUndoBuffer = null;
+let _clearUndoTimer = null;
+
 function doClearSpecific(tab, month) {
+    const snapshot = {
+        tab, month,
+        transactions: tab === 'all' || tab === 'tx' ? JSON.parse(JSON.stringify(db.transactions)) : null,
+        dailyMoney:   tab === 'all' || tab === 'dm'  ? JSON.parse(JSON.stringify(db.dailyMoney))  : null,
+        expenses:     tab === 'all' || tab === 'exp' ? JSON.parse(JSON.stringify(db.expenses))     : null,
+        debts:        tab === 'all' || tab === 'debts' ? JSON.parse(JSON.stringify(db.debts))      : null,
+    };
+    _clearUndoBuffer = snapshot;
+
     const filterFn = (item) => {
         let dtStr = item.datetime || item.date || '';
         if (!dtStr && item.ts) {
@@ -5099,9 +5238,7 @@ function doClearSpecific(tab, month) {
             dtStr = d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
         }
         if (!dtStr) return true; 
-        
         if (month !== 'all' && !dtStr.startsWith(month)) return true;
-        
         trackDeletedId(item.id);
         return false; 
     };
@@ -5109,18 +5246,50 @@ function doClearSpecific(tab, month) {
     if (tab === 'all' || tab === 'tx') db.transactions = db.transactions.filter(filterFn);
     if (tab === 'all' || tab === 'dm') db.dailyMoney = db.dailyMoney.filter(filterFn);
     if (tab === 'all' || tab === 'exp') db.expenses = db.expenses.filter(filterFn);
-    
     if (tab === 'all' || tab === 'debts') {
-        db.debts.forEach(p => {
-            p.entries = p.entries.filter(filterFn);
-        });
+        db.debts.forEach(p => { p.entries = p.entries.filter(filterFn); });
         db.debts = db.debts.filter(p => p.entries.length > 0);
     }
 
     dbSave();
     closeM('m-clear-specific');
     refreshAll();
-    toast('Deleted');
+
+    // Show undo toast (stays for 8 seconds)
+    if (_clearUndoTimer) clearTimeout(_clearUndoTimer);
+    const toastEl = document.getElementById('toast'); 
+    toastEl.className = 'toast has-undo on';
+    toastEl.innerHTML = `<span>🗑️ Data deleted</span><button class="toast-undo-btn" onclick="undoClearSpecific()">↩ Undo</button>`;
+    
+    // Prevent normal toast auto-hide
+    clearTimeout(toastEl._t);
+    
+    _clearUndoTimer = setTimeout(() => {
+        _clearUndoBuffer = null;
+        toastEl.classList.remove('on', 'has-undo');
+        setTimeout(() => { toastEl.innerHTML = ''; }, 300);
+    }, 8000);
+}
+
+function undoClearSpecific() {
+    if (!_clearUndoBuffer) { toast('Nothing to undo'); return; }
+    const snap = _clearUndoBuffer;
+    _clearUndoBuffer = null;
+    if (_clearUndoTimer) { clearTimeout(_clearUndoTimer); _clearUndoTimer = null; }
+
+    if (snap.transactions !== null) db.transactions = snap.transactions;
+    if (snap.dailyMoney !== null) db.dailyMoney = snap.dailyMoney;
+    if (snap.expenses !== null) db.expenses = snap.expenses;
+    if (snap.debts !== null) db.debts = snap.debts;
+
+    dbSave();
+    refreshAll();
+
+    const toastEl = document.getElementById('toast');
+    if (toastEl) { 
+        toastEl.classList.remove('on', 'has-undo'); 
+        setTimeout(() => { toastEl.innerHTML = ''; toast('✅ Restored successfully!'); }, 300); 
+    }
 }
 
 function clearAllData() {
