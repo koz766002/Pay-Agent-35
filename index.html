@@ -10,7 +10,7 @@
     <meta name="theme-color" content="#3B5BDB">
     <meta name="application-name" content="Pay Agent">
     <meta name="description" content="Personal finance tracker with cloud sync and offline support.">
-    <meta name="version" content="8.1.8">
+    <meta name="version" content="8.1.9">
     <title>Pay Agent — Pro Cash Manager</title>
     
     <link rel="manifest" href="/manifest.json">
@@ -148,40 +148,79 @@
         .card { background:var(--surface); border-radius:var(--r); padding:20px; border:1px solid var(--border); box-shadow:var(--shadow2); margin-bottom:16px; } 
         .card-sm { background:var(--surface); border-radius:var(--r2); padding:14px; border:1px solid var(--border); }
         
+        /* ════ HERO (MASTERCARD) & FESTIVAL DECORATIONS ════ */
         :root { --hero-bg: linear-gradient(135deg,#3B5BDB 0%,#7048E8 60%,#9B59B6 100%); }
-        .hero { border-radius:var(--r); padding:24px 22px 20px; color:#fff; position:relative; overflow:hidden; margin-bottom:16px; background:var(--hero-bg); box-shadow:var(--shadow-pop); transform:translateZ(0); transition: background 0.6s ease; } 
-        .hero::before { content:''; position:absolute; top:-60px; right:-40px; width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,0.07); } 
-        .hero::after { content:''; position:absolute; bottom:-80px; left:-20px; width:240px; height:240px; border-radius:50%; background:rgba(255,255,255,0.04); } 
+        .hero { border-radius:var(--r); padding:24px 22px 20px; color:#fff; position:relative; overflow:hidden; margin-bottom:16px; background:var(--hero-bg); box-shadow:var(--shadow-pop); transform:translateZ(0); transition: background 0.8s ease; contain:layout style paint; } 
+        .hero::before { content:''; position:absolute; top:-60px; right:-40px; width:200px; height:200px; border-radius:50%; background:rgba(255,255,255,0.07); pointer-events:none; } 
+        .hero::after { content:''; position:absolute; bottom:-80px; left:-20px; width:240px; height:240px; border-radius:50%; background:rgba(255,255,255,0.04); pointer-events:none; } 
         .hero-grid { position:absolute; inset:0; background-image:repeating-linear-gradient(0deg,transparent,transparent 28px,rgba(255,255,255,0.025) 28px,rgba(255,255,255,0.025) 29px),repeating-linear-gradient(90deg,transparent,transparent 28px,rgba(255,255,255,0.025) 28px,rgba(255,255,255,0.025) 29px); z-index:0; pointer-events:none; } 
         
-        /* Seasonal Decor Animations */
-        .seasonal-decor { position:absolute; font-size:2.8rem; opacity:0.4; pointer-events:none; z-index:1; line-height:1; }
-        .decor-top-right { top:12px; right:14px; }
-        .decor-bottom-left { bottom:12px; left:14px; }
-        .decor-mid-right { top:50%; right:18px; transform:translateY(-50%); font-size:2rem; }
-        @keyframes floatAnim { 0%, 100% { transform:translateY(0) scale(1); } 50% { transform:translateY(-8px) scale(1.05); } }
-        @keyframes swingAnim { 0%, 100% { transform:rotate(-12deg); } 50% { transform:rotate(12deg); } }
-        @keyframes pulseAnim { 0%, 100% { transform:scale(1); opacity:0.35; } 50% { transform:scale(1.12); opacity:0.55; } }
-        @keyframes shimmerAnim { 0%, 100% { opacity:0.35; } 50% { opacity:0.6; } }
-        .seasonal-decor.float { animation:floatAnim 3.2s ease-in-out infinite; }
-        .seasonal-decor.swing { animation:swingAnim 4s ease-in-out infinite; transform-origin:top center; }
-        .seasonal-decor.pulse { animation:pulseAnim 2.8s ease-in-out infinite; }
-        .seasonal-decor.shimmer { animation:shimmerAnim 2s ease-in-out infinite; }
-        /* Festival Label Banner */
-        .festival-banner { position:absolute; bottom:0; left:0; right:0; background:rgba(0,0,0,0.22); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); border-top:1px solid rgba(255,255,255,0.12); padding:7px 16px; display:flex; align-items:center; justify-content:space-between; z-index:2; border-radius:0 0 var(--r) var(--r); }
-        .festival-banner-name { font-size:0.78rem; font-weight:700; color:#fff; letter-spacing:0.3px; display:flex; align-items:center; gap:6px; }
-        .festival-banner-name .fest-icon { font-size:1rem; }
-        .festival-countdown { font-size:0.68rem; font-weight:600; color:rgba(255,255,255,0.85); background:rgba(255,255,255,0.15); border-radius:999px; padding:3px 10px; white-space:nowrap; }
-        .festival-countdown.today { background:rgba(255,220,50,0.3); color:#fff; font-weight:800; }
-        .festival-countdown.soon { background:rgba(255,255,255,0.18); color:#fff; }
+        /* ═══ SEASONAL THEME: CSS-only animations, GPU-composited (no JS timers) ═══ */
 
-        .hero-lbl { font-size:0.75rem; opacity:.8; font-weight:500; margin-bottom:4px; position:relative; z-index:1; letter-spacing:0.4px; text-transform:uppercase; } 
-        .hero-amt { font-size:calc(2.4rem * var(--fs-scale)); font-weight:800; letter-spacing:-1.5px; margin-bottom:20px; position:relative; z-index:1; font-family:'Inter',sans-serif; text-shadow:0 2px 8px rgba(0,0,0,0.1); cursor:default; user-select:none; } 
-        .hero-sub { display:flex; gap:10px; position:relative; z-index:1; } 
+        /* --- shared badge --- */
+        .hero-festival-title {
+            position:absolute; top:14px; right:16px; font-size:0.6rem; font-weight:800;
+            color:#fff; text-transform:uppercase; letter-spacing:1px; z-index:10;
+            padding:4px 12px; border-radius:20px;
+            border:1px solid rgba(255,255,255,0.30);
+            background:rgba(0,0,0,0.18); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+            animation: seasonBadgeIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
+            transform-origin: right top;
+        }
+        @keyframes seasonBadgeIn { from{opacity:0;transform:scale(0.7)} to{opacity:1;transform:scale(1)} }
+
+        /* --- scene container --- */
+        .season-scene {
+            position:absolute; inset:0; overflow:hidden; pointer-events:none; z-index:1;
+            border-radius:var(--r);
+        }
+
+        /* ---- THINGYAN: water drops ---- */
+        @keyframes drop { 0%{transform:translateY(-30px);opacity:0} 15%{opacity:0.9} 85%{opacity:0.85} 100%{transform:translateY(140px);opacity:0} }
+        @keyframes splash { 0%,80%{transform:scale(0);opacity:0} 85%{transform:scale(1.2);opacity:0.7} 100%{transform:scale(1.8);opacity:0} }
+        .sdrop { position:absolute; top:0; width:6px; border-radius:0 0 50% 50%; background:rgba(147,220,255,0.85); animation:drop linear infinite; will-change:transform,opacity; }
+        .sdrop::after { content:''; position:absolute; bottom:-4px; left:50%; transform:translateX(-50%) scale(0); width:14px; height:6px; border-radius:50%; background:rgba(147,220,255,0.5); animation:splash linear infinite; will-change:transform,opacity; animation-duration:inherit; animation-delay:inherit; }
+        .swave { position:absolute; bottom:0; left:0; right:0; height:28px; opacity:0.25; }
+
+        /* ---- THADINGYUT / TAZAUNGDAING: lanterns & candles ---- */
+        @keyframes lanternFloat { 0%{transform:translateY(0) rotate(-4deg)} 50%{transform:translateY(-10px) rotate(3deg)} 100%{transform:translateY(0) rotate(-4deg)} }
+        @keyframes flicker { 0%,100%{opacity:1;transform:scaleY(1)} 40%{opacity:0.7;transform:scaleY(0.85)} 70%{opacity:0.9;transform:scaleY(1.1)} }
+        @keyframes skyLanternRise { 0%{transform:translateY(0);opacity:0.9} 100%{transform:translateY(-160px);opacity:0} }
+        .s-lantern { position:absolute; animation:lanternFloat ease-in-out infinite; will-change:transform; }
+        .s-candle-flame { animation:flicker ease-in-out infinite; transform-origin:bottom center; will-change:transform,opacity; }
+        .s-sky-lantern { position:absolute; bottom:10px; animation:skyLanternRise linear infinite; will-change:transform,opacity; }
+
+        /* ---- CHRISTMAS / NEW YEAR: snowflakes ---- */
+        @keyframes snowFall { 0%{transform:translateY(-20px) rotate(0deg);opacity:0} 10%{opacity:0.85} 90%{opacity:0.7} 100%{transform:translateY(145px) rotate(360deg);opacity:0} }
+        .sflake { position:absolute; top:0; color:rgba(255,255,255,0.9); font-size:1rem; animation:snowFall linear infinite; will-change:transform,opacity; }
+
+        /* ---- FIREWORKS: new year / diwali ---- */
+        @keyframes sparkOut { 0%{transform:translate(0,0) scale(1);opacity:1} 100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0} }
+        .s-spark { position:absolute; width:4px; height:4px; border-radius:50%; animation:sparkOut ease-out infinite; will-change:transform,opacity; }
+
+        /* ---- MOON glow ---- */
+        @keyframes moonGlow { 0%,100%{box-shadow:0 0 18px 6px rgba(255,235,150,0.45)} 50%{box-shadow:0 0 28px 12px rgba(255,235,150,0.7)} }
+        .s-moon { position:absolute; border-radius:50%; background:rgba(255,235,150,0.92); animation:moonGlow ease-in-out infinite; will-change:box-shadow; }
+
+        /* ---- PETALS / FLOWERS ---- */
+        @keyframes petalDrift { 0%{transform:translateY(-10px) translateX(0) rotate(0deg);opacity:0} 10%{opacity:0.85} 90%{opacity:0.7} 100%{transform:translateY(140px) translateX(30px) rotate(180deg);opacity:0} }
+        .s-petal { position:absolute; top:0; animation:petalDrift ease-in infinite; will-change:transform,opacity; }
+
+        /* ---- HEARTS: valentine ---- */
+        @keyframes heartRise { 0%{transform:translateY(0) scale(0.5);opacity:0} 15%{opacity:0.9;transform:translateY(-20px) scale(1)} 85%{opacity:0.7} 100%{transform:translateY(-130px) scale(0.8);opacity:0} }
+        .s-heart { position:absolute; animation:heartRise ease-in infinite; will-change:transform,opacity; }
+
+        /* ---- LEAVES: kasone / nature ---- */
+        @keyframes leafSway { 0%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-8px) rotate(5deg)} 100%{transform:translateY(0) rotate(-5deg)} }
+        .s-leaf { position:absolute; animation:leafSway ease-in-out infinite; will-change:transform; }
+
+        .hero-lbl { font-size:0.75rem; opacity:.8; font-weight:500; margin-bottom:4px; position:relative; z-index:2; letter-spacing:0.4px; text-transform:uppercase; } 
+        .hero-amt { font-size:calc(2.4rem * var(--fs-scale)); font-weight:800; letter-spacing:-1.5px; margin-bottom:20px; position:relative; z-index:2; font-family:'Inter',sans-serif; text-shadow:0 2px 8px rgba(0,0,0,0.1); cursor:default; user-select:none; } 
+        .hero-sub { display:flex; gap:10px; position:relative; z-index:2; } 
         .hsub { background:rgba(255,255,255,0.15); backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-radius:12px; padding:10px 14px; flex:1; border:1px solid rgba(255,255,255,0.12); } 
         .hsub-l { font-size:0.65rem; opacity:.8; margin-bottom:4px; font-weight:500; letter-spacing:0.2px; } 
         .hsub-v { font-size:calc(0.95rem * var(--fs-scale)); font-weight:700; font-family:'Inter',sans-serif; } 
-        .hero-date { font-size:0.7rem; opacity:.65; margin-top:12px; position:relative; z-index:1; }
+        .hero-date { font-size:0.7rem; opacity:.65; margin-top:12px; position:relative; z-index:2; }
 
         .sgrid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px; } 
         .scard { background:var(--surface); border-radius:var(--r2); padding:14px 16px; border:1px solid var(--border); position:relative; overflow:hidden; cursor:pointer; box-shadow:var(--shadow2); transition:transform 0.15s cubic-bezier(0.4,0,0.2,1), box-shadow 0.15s; } 
@@ -478,9 +517,6 @@
         .alert-toast-x:hover { color:var(--red); background:var(--redl); }
 
         .toast { position:fixed; top:20px; bottom:auto; left:50%; transform:translateX(-50%) translateY(-24px); background:var(--surface); color:var(--text); padding:13px 22px; border-radius:40px; font-size:0.88rem; font-weight:600; font-family:'Sora',sans-serif; z-index:10000; opacity:0; transition:opacity .25s cubic-bezier(.32,1.1,.64,1), transform .25s cubic-bezier(.32,1.1,.64,1); white-space:nowrap; pointer-events:none; box-shadow:0 6px 28px rgba(0,0,0,0.14),0 2px 8px rgba(0,0,0,0.08); border:1px solid var(--border); display:flex; align-items:center; gap:8px; max-width:calc(100% - 32px); }
-        .toast.has-undo { pointer-events:all; cursor:default; padding-right:14px; }
-        .toast-undo-btn { background:var(--accentg); color:#fff; border:none; border-radius:20px; padding:5px 14px; font-size:0.8rem; font-weight:700; cursor:pointer; font-family:'Sora',sans-serif; white-space:nowrap; flex-shrink:0; transition:opacity 0.15s; }
-        .toast-undo-btn:active { opacity:0.8; }
         [data-theme=dark] .toast { background:var(--surface2); border-color:var(--border2); } 
         .toast.on { opacity:1; transform:translateX(-50%) translateY(0); }
 
@@ -648,10 +684,6 @@
                         <div class="hw-item" onclick="goPage('reports')">
                             <div class="hw-icon" style="color:#7048E8; background:rgba(112,72,232,0.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></div>
                             <div class="hw-lbl" data-i18n="nav_reports">Report</div>
-                        </div>
-                        <div class="hw-item" onclick="optimizeData()">
-                            <div class="hw-icon" style="color:#D08B0A; background:rgba(208,139,10,0.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
-                            <div class="hw-lbl" data-i18n="confirm_optimize">Optimize</div>
                         </div>
                         <div class="hw-item" onclick="openM('m-settings-quick')">
                             <div class="hw-icon" style="color:#52566E; background:rgba(82,86,110,0.1)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></div>
@@ -963,12 +995,25 @@
 
     <!-- ════ MODALS & OVERLAYS ════ -->
 
+    <!-- RECYCLE BIN MODAL -->
+    <div class="overlay" id="m-recycle-bin">
+        <div class="sheet" style="height: 80vh;">
+            <div class="mhandle"></div>
+            <div class="mtitle" style="margin-bottom:10px" data-i18n="recycle_bin">Recycle Bin</div>
+            <div style="display:flex; justify-content:space-between; margin-bottom:16px;">
+                <button class="btn-s" style="margin:0; width:auto; padding:8px 14px; font-size:0.75rem;" onclick="emptyRecycleBin()" data-i18n="empty_bin">Empty Bin</button>
+                <button class="btn-s" style="margin:0; width:auto; padding:8px 14px; font-size:0.75rem; background:var(--accent-soft); color:var(--accent); border-color:var(--accent);" onclick="restoreAllBin()" data-i18n="restore_all">Restore All</button>
+            </div>
+            <div id="recycleBinList" style="flex:1; overflow-y:auto; padding-bottom:20px;"></div>
+        </div>
+    </div>
+
     <!-- CLEAR SPECIFIC DATA MODAL -->
     <div class="overlay" id="m-clear-specific">
         <div class="sheet">
             <div class="mhandle"></div>
             <div class="mtitle" data-i18n="clear_specific">Clear Specific Data</div>
-            <p style="font-size:0.8rem;color:var(--text2);margin-bottom:18px;" data-i18n="clear_specific_sub">Select which tab and month you want to permanently delete.</p>
+            <p style="font-size:0.8rem;color:var(--text2);margin-bottom:18px;" data-i18n="clear_specific_sub">Select which tab and month you want to delete. (Moves to Recycle Bin)</p>
             
             <div class="fgrp">
                 <label class="flbl" data-i18n="select_tab">Select Tab</label>
@@ -1369,6 +1414,12 @@
                     <div class="srow-body"><div class="srow-title" style="color:var(--red)" data-i18n="clear_specific">Clear Specific Data</div><div class="srow-sub" data-i18n="clear_specific_sub">Delete by Tab & Month</div></div>
                     <span class="srow-right" style="color:var(--red)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
                 </div>
+
+                <div class="srow" onclick="openRecycleBin()">
+                    <span class="srow-icon" style="background:var(--surface2);color:var(--text2)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/><path d="M10 2l4 0"/></svg></span>
+                    <div class="srow-body"><div class="srow-title" data-i18n="recycle_bin">Recycle Bin</div><div class="srow-sub" data-i18n="recycle_bin_sub">Restore last 5 deleted items</div></div>
+                    <span class="srow-right"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="9 18 15 12 9 6"/></svg></span>
+                </div>
                 
                 <div class="srow" onclick="clearAllData()" style="border-color:rgba(224,62,62,.2)">
                     <span class="srow-icon" style="background:var(--redl);color:var(--red)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg></span>
@@ -1380,7 +1431,7 @@
                     <div style="width:48px;height:48px;background:var(--accentg);border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px; box-shadow: 0 4px 12px rgba(59,91,219,0.25)"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg></div>
                     <div style="font-weight:800;font-size:1.05rem">Pay Agent</div>
                     <div style="font-size:0.75rem;color:var(--text2);margin-top:4px">MKT Computer & Printing Service</div>
-                    <div style="margin-top:8px"><span class="version-badge">Version - 8.1.8 - PWA</span></div>
+                    <div style="margin-top:8px"><span class="version-badge">Version - 8.1.9 - PWA</span></div>
                 </div>
             </div>
         </div>
@@ -1529,7 +1580,8 @@ const FRESH_DB = () => ({
     }, 
     providers:[], cashBalance:0, opening:{date:null,cash:0,providers:{}}, openingsHistory: [], 
     transactions:[], dailyMoney:[], expenses:[], debts:[], debtSubFolders:[], notifications:[], reminders:[], 
-    savedProviders:[], savedDmCategories:[], savedCategories:[], savedDebtNames:[], smartFill:{}, deletedIds:[] 
+    savedProviders:[], savedDmCategories:[], savedCategories:[], savedDebtNames:[], smartFill:{}, deletedIds:[],
+    recycleBin: []
 });
 
 let db = FRESH_DB();
@@ -1562,7 +1614,7 @@ async function dbLoad() {
 
         if (p) { 
             db = Object.assign(FRESH_DB(), p); 
-            ['savedProviders','savedDmCategories','savedCategories','savedDebtNames','reminders','notifications','debtSubFolders','deletedIds','openingsHistory','dailyMoney','expenses'].forEach(k => { if(!db[k]) db[k] = []; });
+            ['savedProviders','savedDmCategories','savedCategories','savedDebtNames','reminders','notifications','debtSubFolders','deletedIds','openingsHistory','dailyMoney','expenses','recycleBin'].forEach(k => { if(!db[k]) db[k] = []; });
             
             if (!db.settings.migrated_to_dm_v5) {
                 if (db.expenses && db.expenses.length > 0 && (!db.dailyMoney || db.dailyMoney.length === 0)) {
@@ -1597,6 +1649,114 @@ function dbSave(skipCloud = false) {
             dbSave._pushTimer = setTimeout(async () => { await pushToCloud(); }, 2000);
         }
     }
+}
+
+// RECYCLE BIN LOGIC
+function pushToBin(item) {
+    if (!db.recycleBin) db.recycleBin = [];
+    db.recycleBin.unshift({
+        binId: genId(),
+        ts: Date.now(),
+        ...item
+    });
+    if (db.recycleBin.length > 5) db.recycleBin.pop(); // Keep only 5
+    dbSave(true);
+}
+
+function unmarkDeletedId(id) {
+    if (db.deletedIds && db.deletedIds.includes(id)) {
+        db.deletedIds = db.deletedIds.filter(x => x !== id);
+    }
+}
+
+function openRecycleBin() {
+    closeM('m-settings-quick');
+    setTimeout(() => {
+        renderRecycleBin();
+        openM('m-recycle-bin');
+    }, 250);
+}
+
+function renderRecycleBin() {
+    const el = document.getElementById('recycleBinList');
+    if (!el) return;
+    if (!db.recycleBin || !db.recycleBin.length) {
+        el.innerHTML = `<div class="empty"><p>${t('no_records')}</p></div>`;
+        return;
+    }
+    
+    el.innerHTML = db.recycleBin.map(b => {
+        let title = b.label || 'Deleted Item';
+        let dt = fmtDate(getDateStr(new Date(b.ts).toISOString())) + ' ' + fmtTime(b.ts);
+        return `
+        <div class="srow" style="cursor:default">
+            <span class="srow-icon" style="background:var(--redl);color:var(--red)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg></span>
+            <div class="srow-body"><div class="srow-title" style="font-size:0.8rem">${title}</div><div class="srow-sub">${dt}</div></div>
+            <div style="display:flex;gap:6px">
+                <button class="act-edit" style="background:var(--accent-soft);color:var(--accent);padding:6px 10px;" onclick="restoreBinItem('${b.binId}')">${t('restore')}</button>
+                <button class="act-del" style="padding:6px 10px;" onclick="deleteBinItem('${b.binId}')">✕</button>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+function restoreBinItem(binId) {
+    const idx = db.recycleBin.findIndex(x => x.binId === binId);
+    if (idx === -1) return;
+    const item = db.recycleBin[idx];
+    
+    if (item.type === 'tx') {
+        db.transactions.push(item.payload);
+        applyTx(item.payload);
+        unmarkDeletedId(item.payload.id);
+    } else if (item.type === 'dm') {
+        db.dailyMoney.push(item.payload);
+        unmarkDeletedId(item.payload.id);
+    } else if (item.type === 'exp') {
+        db.expenses.push(item.payload);
+        unmarkDeletedId(item.payload.id);
+    } else if (item.type === 'debt_entry') {
+        let p = db.debts.find(x => x.name === item.payload.profileName);
+        if (!p) { p = { name: item.payload.profileName, entries: [] }; db.debts.push(p); }
+        p.entries.push(item.payload.entry);
+        unmarkDeletedId(item.payload.entry.id);
+    } else if (item.type === 'debt_profile') {
+        db.debts.push(item.payload);
+        item.payload.entries.forEach(e => unmarkDeletedId(e.id));
+    } else if (item.type === 'subfolder') {
+        db.debtSubFolders.push(item.payload);
+    } else if (item.type === 'batch') {
+        const snap = item.payload;
+        if (snap.transactions) { db.transactions = snap.transactions; db.transactions.forEach(x => unmarkDeletedId(x.id)); }
+        if (snap.dailyMoney) { db.dailyMoney = snap.dailyMoney; db.dailyMoney.forEach(x => unmarkDeletedId(x.id)); }
+        if (snap.expenses) { db.expenses = snap.expenses; db.expenses.forEach(x => unmarkDeletedId(x.id)); }
+        if (snap.debts) { db.debts = snap.debts; db.debts.forEach(p => p.entries.forEach(e => unmarkDeletedId(e.id))); }
+    }
+    
+    db.recycleBin.splice(idx, 1);
+    dbSave();
+    renderRecycleBin();
+    refreshAll();
+    toast(t('item_restored'));
+}
+
+function deleteBinItem(binId) {
+    db.recycleBin = db.recycleBin.filter(x => x.binId !== binId);
+    dbSave(true);
+    renderRecycleBin();
+}
+
+function emptyRecycleBin() {
+    db.recycleBin = [];
+    dbSave(true);
+    renderRecycleBin();
+    toast(t('bin_emptied'));
+}
+
+function restoreAllBin() {
+    if (!db.recycleBin || !db.recycleBin.length) return;
+    const ids = db.recycleBin.map(x => x.binId);
+    ids.forEach(id => restoreBinItem(id));
 }
 
 const genId = () => 'TX' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2,4).toUpperCase();
@@ -1698,16 +1858,13 @@ const TOAST_DICTS = {
     'Notifications enabled!': 'အကြောင်းကြားချက် ဖွင့်လိုက်ပါပြီ!', 'Online Sync disabled': 'အွန်လိုင်းချိတ်ဆက်မှု ပိတ်လိုက်ပါပြီ',
     'Switched to English ✓': 'Switched to English ✓', 'မြန်မာသို့ ပြောင်းလဲပြီ ✓': 'မြန်မာသို့ ပြောင်းလဲပြီ ✓',
     'Error clearing data': 'ဒေတာဖျက်ရာတွင် အမှားအယွင်းရှိပါသည်', 'Storage full! Clear some data.': 'ဖုန်းမှတ်ဉာဏ်ပြည့်နေပါသည်! ဒေတာအချို့ဖျက်ပေးပါ။',
-    'Optimized successfully!': 'ရှင်းလင်းခြင်း အောင်မြင်ပါသည်!'
+    'Optimized successfully!': 'ရှင်းလင်းခြင်း အောင်မြင်ပါသည်!',
+    'deleted_to_bin': 'အမှိုက်ပုံးထဲသို့ ရွှေ့လိုက်ပါပြီ', 'item_restored': 'ဒေတာ ပြန်လည်ရယူပြီးပါပြီ', 'bin_emptied': 'အမှိုက်ပုံး ရှင်းလင်းပြီးပါပြီ'
 };
 
 function toast(msg, type) { 
     const el = document.getElementById('toast'); 
     if (!el) return;
-    
-    if (_clearUndoTimer) { clearTimeout(_clearUndoTimer); _clearUndoTimer = null; }
-    _clearUndoBuffer = null;
-    el.classList.remove('has-undo'); 
     
     let displayMsg = msg;
     if (db && db.settings && db.settings.lang === 'mm' && TOAST_DICTS[msg]) {
@@ -1790,6 +1947,7 @@ function playSound() {
         gain.gain.setValueAtTime(0.5, ctx.currentTime); 
         gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
         osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.1);
+        setTimeout(() => { try { ctx.close(); } catch(e){} }, 300);
     } catch(e) {}
 }
 
@@ -1812,6 +1970,7 @@ function playUnlockSound() {
         gain2.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.12);
         gain2.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.4);
         osc2.start(ctx.currentTime + 0.1); osc2.stop(ctx.currentTime + 0.5);
+        setTimeout(() => { try { ctx.close(); } catch(e){} }, 700);
     } catch(e) {}
 }
 
@@ -1906,7 +2065,13 @@ function goPage(name, fromHistory = false) {
     const targetNav = document.getElementById('nv-' + name);
     if (targetNav) targetNav.classList.add('on');
     
-    curPage = name; 
+    curPage = name;
+
+    // Clear festival scene when leaving home; re-spawns when home renders
+    if (name !== 'home') {
+        const hero = document.querySelector('.hero');
+        if (hero) hero.querySelectorAll('.season-scene, .hero-festival-title').forEach(p => p.remove());
+    }
     
     if (name === 'reports') {
         buildRpDayStrip();
@@ -1930,13 +2095,16 @@ function goPage(name, fromHistory = false) {
 
 function openM(id) { 
     doVibrate(); 
-    document.getElementById(id).classList.add('on');
+    const el = document.getElementById(id);
+    if (!el) { console.warn('openM: element not found:', id); return; }
+    el.classList.add('on');
     window.history.pushState({ modal: id, page: curPage }, "");
 }
 
 function closeM(id) { 
     doVibrate(); 
-    document.getElementById(id).classList.remove('on');
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('on');
     if (window.history.state && window.history.state.modal) {
         window.history.back();
     }
@@ -2071,11 +2239,11 @@ const I18N = {
     recent_activity: 'Recent Activity', no_reminders: 'No reminders set.', settled_records: 'Settled Records',
     active_records: 'active records', no_profiles_folder: 'No profiles in this folder', ungrouped: 'Ungrouped',
     paid_tick: 'Paid ✓', settled_paid: 'Settled/Paid', optimize_data: 'Optimize Cache', optimize_data_sub: 'Free up space, keep main data', confirm_optimize: 'Optimize',
-    delete_tx_title: 'Delete Transaction', delete_tx_msg: 'This will reverse its effect on your balances.',
-    delete_exp_title: 'Delete Entry', delete_exp_msg: 'Remove this entry?',
-    delete_debt_title: 'Delete Entry', delete_debt_msg: 'Remove this debt entry?',
-    delete_folder_title: 'Delete Sub-Folder', delete_folder_msg: 'Remove this sub-folder? Profiles inside will remain.',
-    delete_profile_title: 'Delete All Records', delete_profile_msg: 'Remove all records for "{name}"?',
+    delete_tx_title: 'Delete Transaction', delete_tx_msg: 'This will reverse its effect on your balances. Move to Recycle Bin?',
+    delete_exp_title: 'Delete Entry', delete_exp_msg: 'Move this entry to Recycle Bin?',
+    delete_debt_title: 'Delete Entry', delete_debt_msg: 'Move this debt entry to Recycle Bin?',
+    delete_folder_title: 'Delete Sub-Folder', delete_folder_msg: 'Move this sub-folder to Recycle Bin? Profiles inside will remain.',
+    delete_profile_title: 'Delete All Records', delete_profile_msg: 'Move all records for "{name}" to Recycle Bin?',
     delete_rem_title: 'Delete Reminder', delete_rem_msg: 'Are you sure you want to delete this reminder?',
     todays_opening_history: "Today's Opening History", no_opening_history: "No opening history available.",
     clear_notif: 'Clear Notifications ', clear_history: 'Clear Daily Opening History', opt_success: 'Optimized successfully!',
@@ -2091,11 +2259,14 @@ const I18N = {
     older_entries_hidden: 'Older entries are hidden to save memory. Search to find them.',
     no_exp_data: 'No expense / income data',
     app_updated: 'App updated! Reload for latest.',
-    removed_msg: 'Removed',
+    removed_msg: 'Moved to Recycle Bin',
     report_downloaded: 'Report downloaded (open in browser to print)',
     backup_downloaded: 'Backup downloaded!', clear_specific: 'Clear Specific Data',
-    clear_specific_sub: 'Delete by Tab & Month', select_tab: 'Select Tab', select_month: 'Select Month',
-    all_tabs: 'All Tabs', all_months: 'All Months'
+    clear_specific_sub: 'Delete by Tab & Month (Moves to Recycle Bin)', select_tab: 'Select Tab', select_month: 'Select Month',
+    all_tabs: 'All Tabs', all_months: 'All Months',
+    recycle_bin: 'Recycle Bin', recycle_bin_sub: 'Restore last 5 deleted items', empty_bin: 'Empty Bin',
+    restore_all: 'Restore All', restore: 'Restore', item_restored: 'Data Restored Successfully', bin_emptied: 'Recycle Bin Emptied',
+    deleted_to_bin: 'Moved to Recycle Bin'
   },
   mm: {
     nav_home:'ပင်မ', nav_tx:'ငွေပေး/ယူ', nav_dm:'နေ့စဉ်ငွေစာရင်း', nav_exp:'အသုံးစရိတ်', nav_debts:'အကြွေး', nav_reports:'အစီရင်ခံ',
@@ -2127,7 +2298,7 @@ const I18N = {
     datetime_label:'ရက်စွဲ & အချိန်', save_transaction:'ငွေပေးငွေယူ သိမ်းရန်', type_label:'အမျိုးအစား', category_label:'အမျိုးအစား',
     payment_source:'ငွေပေးမှု ရင်းမြစ်', description_label:'ဖော်ပြချက်', date_label:'ရက်စွဲ', person_name:'လူပုဂ္ဂိုလ် အမည်',
     cash_in_btn:'ငွေဝင်', cash_out_btn:'ငွေထွက်', receive_btn:'လက်ခံ', send_btn:'ပို့', payment_btn:'ငွေပေး',
-    phone_bill_btn:'ဖုန်းဘေ', transfer_btn:'လွှဲ', expense_btn:'Expenses', income_btn:'In Come', outcome_btn: 'Out Come',
+    phone_bill_btn:'ဖုန်းဘေ', transfer_btn:'လွှဲ', expense_btn:'အသုံးစရိတ်', income_btn:'ဝင်ငွေ', outcome_btn: 'ထွက်ငွေ',
     i_owe_btn:'ကျွန်ုပ်ကြွေးရှိသည်', owed_btn:'ကျွန်ုပ်ငွေရမည်', settled_btn:'ပြေပြတ်ပြီ', emoney_btn:'E-Money', cash_btn:'ငွေသား',
     reminder_title_ph:'ဥပမာ - အကြွေးစစ်ဆေးရန်...', priority_label:'ဦးစားပေးမှု', repeat_label:'ထပ်ကြော်ငြာ',
     normal_btn:'ပုံမှန်', important_btn:'⚠ အရေးကြီး', daily_btn:'နေ့စဉ်', once_btn:'တစ်ကြိမ်', debt_btn:'အကြွေး သတိပေး',
@@ -2171,15 +2342,15 @@ const I18N = {
     no_reminders: 'သတိပေးချက် မရှိသေးပါ', settled_records: 'ရှင်းလင်းပြီး မှတ်တမ်းများ', active_records: 'လက်ကျန် မှတ်တမ်းများ',
     no_profiles_folder: 'ဖိုင်တွဲတွင် မှတ်တမ်းမရှိပါ', ungrouped: 'အုပ်စုမခွဲထားသော', paid_tick: 'ပေးချေပြီ ✓', settled_paid: 'ရှင်းလင်း/ပေးချေပြီ',
     optimize_data: 'ဒေတာ ပေါ့ပါးအောင်လုပ်ရန်', optimize_data_sub: 'အဓိကဒေတာမပျက်စေဘဲ ရှင်းလင်းမည်', confirm_optimize: 'သန့်ရှင်း‌ရေး',
-    delete_tx_title: 'ငွေပေးငွေယူ ဖျက်မည်', delete_tx_msg: 'ဤငွေပေးငွေယူကို ဖျက်လိုက်ပါက လက်ကျန်ငွေပြောင်းလဲသွားပါမည်။',
-    delete_exp_title: 'စာရင်း ဖျက်မည်', delete_exp_msg: 'ဤစာရင်းကို ဖျက်မည် သေချာပါသလား?',
-    delete_debt_title: 'မှတ်တမ်း ဖျက်မည်', delete_debt_msg: 'ဤအကြွေးမှတ်တမ်းကို ဖျက်မည် သေချာပါသလား?',
-    delete_folder_title: 'ဖိုင်ခွဲ ဖျက်မည်', delete_folder_msg: 'ဤဖိုင်ခွဲကိုဖျက်မည်လော? (အတွင်းရှိမှတ်တမ်းများ ကျန်ရှိနေမည်)',
-    delete_profile_title: 'မှတ်တမ်းအားလုံးဖျက်မည်', delete_profile_msg: '"{name}" ၏ မှတ်တမ်းအားလုံးကို ဖျက်မည် သေချာပါသလား?',
+    delete_tx_title: 'ငွေပေးငွေယူ ဖျက်မည်', delete_tx_msg: 'လက်ကျန်ငွေပြောင်းလဲသွားပါမည်။ အမှိုက်ပုံးသို့ ရွှေ့မည်လော?',
+    delete_exp_title: 'စာရင်း ဖျက်မည်', delete_exp_msg: 'ဤစာရင်းကို အမှိုက်ပုံးသို့ ရွှေ့မည်လော?',
+    delete_debt_title: 'မှတ်တမ်း ဖျက်မည်', delete_debt_msg: 'ဤအကြွေးမှတ်တမ်းကို အမှိုက်ပုံးသို့ ရွှေ့မည်လော?',
+    delete_folder_title: 'ဖိုင်ခွဲ ဖျက်မည်', delete_folder_msg: 'ဤဖိုင်ခွဲကို အမှိုက်ပုံးသို့ ရွှေ့မည်လော? (အတွင်းရှိမှတ်တမ်းများ ကျန်ရှိနေမည်)',
+    delete_profile_title: 'မှတ်တမ်းအားလုံးဖျက်မည်', delete_profile_msg: '"{name}" ၏ မှတ်တမ်းအားလုံးကို အမှိုက်ပုံးသို့ ရွှေ့မည်လော?',
     delete_rem_title: 'သတိပေးချက် ဖျက်မည်', delete_rem_msg: 'ဤသတိပေးချက်ကို ဖျက်မည် သေချာပါသလား?',
     todays_opening_history: "ယနေ့ ဖွင့်သည့်ငွေ မှတ်တမ်း", no_opening_history: "ဖွင့်သည့်ငွေ မှတ်တမ်းများ မရှိသေးပါ။",
     clear_notif: 'အကြောင်းကြားချက်များ ဖျက်မည်', clear_history: 'နေ့ဦးအဖွင့်ငွေ မှတ်တမ်းများ ဖျက်မည်',
-    opt_success: 'ရှင်းလင်းခြင်း အောင်မြင်ပါသည်!', alert_shortcut: 'အရေးကြီး', exp_source_btn: 'Expenses', inc_source_btn: 'In Come',
+    opt_success: 'ရှင်းလင်းခြင်း အောင်မြင်ပါသည်!', alert_shortcut: 'အရေးကြီး', exp_source_btn: 'အသုံးစရိတ်', inc_source_btn: 'ဝင်ငွေ',
     important_alert: 'အရေးကြီး သတိပေးချက်', pull_to_refresh: 'အပ်ဒိတ်လုပ်ရန် လွှတ်ပါ', refreshing: 'ပြန်လည်ရယူနေပါသည်...',
     auth_verify_email: 'အီးမေးလ်အတည်ပြုပြီးမှ အကောင့်ဝင်ပါ။', auth_failed: 'အကောင့်ဝင်ရန် မအောင်မြင်ပါ',
     signed_in_as: 'အကောင့်ဝင်ထားသည်: ', sync_connecting: 'ချိတ်ဆက်နေသည်...', sync_loading: 'ဒေါင်းလုပ်ဆွဲနေသည်...', 
@@ -2193,11 +2364,14 @@ const I18N = {
     older_entries_hidden: 'ဟောင်းသောမှတ်တမ်းများ ဖျောက်ထားပါသည်။ ရှာဖွေမှုဖြင့် ကြည့်နိုင်သည်။',
     no_exp_data: 'အသုံးစရိတ် / ဝင်ငွေ မှတ်တမ်း မရှိသေးပါ',
     app_updated: 'App အပ်ဒိတ်ပြီးပြီ! ပြန်လည်ဖွင့်ပါ။',
-    removed_msg: 'ဖယ်ရှားလိုက်ပါပြီ',
+    removed_msg: 'အမှိုက်ပုံးထဲသို့ ရွှေ့လိုက်ပါပြီ',
     report_downloaded: 'အစီရင်ခံ ဒေါင်းလုပ်ပြီးပြီ (ဘရောက်ဇာတွင် ဖွင့်ပြီး ပုံနှိပ်ပါ)',
     backup_downloaded: 'Backup ဒေါင်းလုပ်ပြီးပြီ!', clear_specific: 'သီးသန့် ဒေတာဖျက်မည်',
-    clear_specific_sub: 'Tab နှင့် လအလိုက် ရွေးချယ်ဖျက်ပစ်ပါ', select_tab: 'Tab ရွေးပါ', select_month: 'လရွေးပါ',
-    all_tabs: 'Tab အားလုံး', all_months: 'လအားလုံး'
+    clear_specific_sub: 'Tab နှင့် လအလိုက် အမှိုက်ပုံးထဲသို့ ရွှေ့မည်', select_tab: 'Tab ရွေးပါ', select_month: 'လရွေးပါ',
+    all_tabs: 'Tab အားလုံး', all_months: 'လအားလုံး',
+    recycle_bin: 'အမှိုက်ပုံး (Recycle Bin)', recycle_bin_sub: 'ဖျက်လိုက်သော နောက်ဆုံး ၅ ခုအား ပြန်လည်ယူရန်', empty_bin: 'အမှိုက်ပုံးရှင်းမည်',
+    restore_all: 'အားလုံးပြန်ယူမည်', restore: 'ပြန်ယူမည်', item_restored: 'ဒေတာ ပြန်လည်ရယူပြီးပါပြီ', bin_emptied: 'အမှိုက်ပုံး ရှင်းလင်းပြီးပါပြီ',
+    deleted_to_bin: 'အမှိုက်ပုံးထဲသို့ ရွှေ့လိုက်ပါပြီ'
   }
 };
 
@@ -2346,6 +2520,7 @@ function cycleLang() {
     db.settings.lang = isEn ? 'mm' : 'en'; 
     dbSave(true); 
     applyLang(); 
+    updateHero();
     toast(isEn ? 'မြန်မာသို့ ပြောင်းလဲပြီ ✓' : 'Switched to English ✓'); 
 }
 
@@ -2957,159 +3132,414 @@ function getSortedDebtProfiles(profiles) {
     return res;
 }
 
-// ── SEASONAL DECORATIONS (MYANMAR 12 MONTHS + INTERNATIONAL) ──
+// ── SEASONAL THEME SYSTEM (Home screen only) ──
+// Activates 3 days before → event day. Returns to normal the next day.
+// Uses CSS-only animations via GPU-composited properties (transform, opacity).
+// No JS timers/intervals — scenes are built once per home render.
+
+const SEASON_DATA = {
+    thingyan: {
+        bg: 'linear-gradient(135deg,#0ea5e9 0%,#06b6d4 45%,#0d9488 100%)',
+        buildScene(scene) {
+            // Water drops — 8 drops staggered
+            const cols = [8,18,28,40,52,63,74,86];
+            cols.forEach((left,i) => {
+                const h = 18 + (i%3)*8;
+                const d = document.createElement('div');
+                d.className = 'sdrop';
+                d.style.cssText = `left:${left}%;height:${h}px;width:${4+(i%3)}px;animation-duration:${1.4+(i%4)*0.3}s;animation-delay:${(i*0.22).toFixed(2)}s`;
+                scene.appendChild(d);
+            });
+            // Wave SVG at bottom
+            scene.insertAdjacentHTML('beforeend',`
+            <svg class="swave" viewBox="0 0 400 28" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 14 Q50 0 100 14 Q150 28 200 14 Q250 0 300 14 Q350 28 400 14 V28 H0Z" fill="rgba(147,220,255,0.35)"/>
+                <path d="M0 18 Q60 6 120 18 Q180 30 240 18 Q300 6 360 18 Q390 24 400 18 V28 H0Z" fill="rgba(147,220,255,0.2)"/>
+            </svg>`);
+        }
+    },
+    myanmar_newyear: {
+        bg: 'linear-gradient(135deg,#f59e0b 0%,#ea580c 50%,#9a3412 100%)',
+        buildScene(scene) {
+            // Sun rays + petals
+            scene.insertAdjacentHTML('beforeend',`
+            <svg style="position:absolute;top:-10px;right:10px;opacity:0.35;width:90px;height:90px" viewBox="0 0 90 90" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="45" cy="45" r="18" fill="#FFF7"/>
+                ${[0,30,60,90,120,150,180,210,240,270,300,330].map(a=>`<line x1="45" y1="45" x2="${45+38*Math.cos(a*Math.PI/180)}" y2="${45+38*Math.sin(a*Math.PI/180)}" stroke="#FFF9" stroke-width="2.5" stroke-linecap="round"/>`).join('')}
+            </svg>`);
+            const cols=[10,22,35,50,65,78,90]; 
+            cols.forEach((l,i)=>{
+                const p=document.createElement('div');
+                p.className='s-petal';
+                p.innerHTML=`<svg width="12" height="10" viewBox="0 0 12 10"><ellipse cx="6" cy="5" rx="5" ry="3.5" fill="rgba(255,200,100,0.8)" transform="rotate(${i*25} 6 5)"/></svg>`;
+                p.style.cssText=`left:${l}%;animation-duration:${2.0+(i%3)*0.5}s;animation-delay:${(i*0.28).toFixed(2)}s`;
+                scene.appendChild(p);
+            });
+        }
+    },
+    thadingyut: {
+        bg: 'linear-gradient(135deg,#1c1917 0%,#44403c 40%,#78350f 100%)',
+        buildScene(scene) {
+            // Moon
+            scene.insertAdjacentHTML('beforeend',`<div class="s-moon" style="top:10px;left:20px;width:34px;height:34px;animation-duration:2.5s"></div>`);
+            // 3 sky lanterns rising
+            [[18,0],[50,0.8],[76,1.5]].forEach(([l,delay])=>{
+                scene.insertAdjacentHTML('beforeend',`
+                <div class="s-sky-lantern" style="left:${l}%;animation-duration:5s;animation-delay:${delay}s;animation-iteration-count:infinite">
+                    <svg width="22" height="30" viewBox="0 0 22 30" xmlns="http://www.w3.org/2000/svg">
+                        <ellipse cx="11" cy="14" rx="9" ry="12" fill="rgba(255,170,30,0.85)" stroke="rgba(255,120,0,0.6)" stroke-width="1"/>
+                        <ellipse cx="11" cy="11" rx="6" ry="7" fill="rgba(255,220,100,0.4)"/>
+                        <line x1="11" y1="26" x2="11" y2="30" stroke="rgba(200,150,50,0.7)" stroke-width="1.5"/>
+                        <circle cx="11" cy="30" r="2" fill="rgba(255,150,0,0.8)"/>
+                    </svg>
+                </div>`);
+            });
+            // Candles row at bottom
+            [15,35,55,75,90].forEach((l,i)=>{
+                scene.insertAdjacentHTML('beforeend',`
+                <div style="position:absolute;bottom:6px;left:${l}%">
+                    <svg width="14" height="24" viewBox="0 0 14 24" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="4" y="10" width="6" height="14" rx="1" fill="rgba(255,240,200,0.75)"/>
+                        <ellipse cx="7" cy="8" rx="3.5" ry="5" fill="rgba(255,200,60,0.9)" class="s-candle-flame" style="animation-duration:${0.6+(i%3)*0.15}s;animation-delay:${(i*0.12).toFixed(2)}s"/>
+                        <ellipse cx="7" cy="6" rx="2" ry="3" fill="rgba(255,240,180,0.7)" class="s-candle-flame" style="animation-duration:${0.6+(i%3)*0.15}s;animation-delay:${(i*0.12).toFixed(2)}s"/>
+                    </svg>
+                </div>`);
+            });
+        }
+    },
+    tazaungdaing: {
+        bg: 'linear-gradient(135deg,#1e1b4b 0%,#4c1d95 50%,#831843 100%)',
+        buildScene(scene) {
+            // Moon
+            scene.insertAdjacentHTML('beforeend',`<div class="s-moon" style="top:8px;right:52px;width:28px;height:28px;animation-duration:3s"></div>`);
+            // 4 sky lanterns different heights/speeds
+            [[12,0,4.5],[30,1.2,5.5],[55,0.5,4.8],[80,1.8,6]].forEach(([l,delay,dur])=>{
+                scene.insertAdjacentHTML('beforeend',`
+                <div class="s-sky-lantern" style="left:${l}%;animation-duration:${dur}s;animation-delay:${delay}s">
+                    <svg width="20" height="28" viewBox="0 0 20 28" xmlns="http://www.w3.org/2000/svg">
+                        <ellipse cx="10" cy="13" rx="8" ry="11" fill="rgba(255,140,0,0.88)" stroke="rgba(255,80,0,0.5)" stroke-width="1"/>
+                        <ellipse cx="10" cy="10" rx="5" ry="6" fill="rgba(255,220,80,0.4)"/>
+                        <line x1="10" y1="24" x2="10" y2="28" stroke="rgba(200,120,30,0.7)" stroke-width="1.5"/>
+                        <circle cx="10" cy="28" r="2" fill="rgba(255,120,0,0.8)"/>
+                    </svg>
+                </div>`);
+            });
+            // Fireworks sparks in top area
+            [[20,15],[65,20],[45,8]].forEach(([cx,cy])=>{
+                const colors=['#FFD700','#FF6B6B','#7DF9FF','#FF85C2'];
+                for(let i=0;i<6;i++){
+                    const angle=i*(360/6);
+                    const tx=Math.cos(angle*Math.PI/180)*22, ty=Math.sin(angle*Math.PI/180)*22;
+                    scene.insertAdjacentHTML('beforeend',`<div class="s-spark" style="left:${cx}%;top:${cy}%;background:${colors[i%colors.length]};--tx:${tx}px;--ty:${ty}px;animation-duration:1.2s;animation-delay:${(i*0.2).toFixed(1)}s"></div>`);
+                }
+            });
+        }
+    },
+    christmas: {
+        bg: 'linear-gradient(135deg,#14532d 0%,#166534 50%,#7f1d1d 100%)',
+        buildScene(scene) {
+            // Snowflakes
+            const flakes=['❄','✦','❅','✧'];
+            [5,15,25,38,50,62,73,83,92].forEach((l,i)=>{
+                const d=document.createElement('div');
+                d.className='sflake';
+                d.textContent=flakes[i%flakes.length];
+                d.style.cssText=`left:${l}%;font-size:${0.8+(i%3)*0.3}rem;animation-duration:${2.5+(i%4)*0.6}s;animation-delay:${(i*0.3).toFixed(2)}s`;
+                scene.appendChild(d);
+            });
+        }
+    },
+    newyear: {
+        bg: 'linear-gradient(135deg,#1e1b4b 0%,#3730a3 50%,#4c1d95 100%)',
+        buildScene(scene) {
+            // Fireworks
+            [[15,20],[50,12],[80,18],[35,8],[65,25]].forEach(([cx,cy],fi)=>{
+                const palette=[['#FFD700','#FF6B6B','#FF85C2'],['#7DF9FF','#FFD700','#98FF98'],['#FF6B6B','#FFA500','#FFD700']];
+                const cols=palette[fi%palette.length];
+                for(let i=0;i<8;i++){
+                    const angle=i*(360/8);
+                    const r=18+(fi%3)*6;
+                    const tx=Math.cos(angle*Math.PI/180)*r, ty=Math.sin(angle*Math.PI/180)*r;
+                    scene.insertAdjacentHTML('beforeend',`<div class="s-spark" style="left:${cx}%;top:${cy}%;background:${cols[i%cols.length]};--tx:${tx}px;--ty:${ty}px;width:${3+(fi%2)}px;height:${3+(fi%2)}px;animation-duration:${1.0+(fi*0.2)}s;animation-delay:${((fi*0.4)+(i*0.08)).toFixed(2)}s"></div>`);
+                }
+            });
+            // Snowflakes
+            [8,30,55,78].forEach((l,i)=>{
+                const d=document.createElement('div');
+                d.className='sflake';
+                d.textContent='✧';
+                d.style.cssText=`left:${l}%;animation-duration:${3+(i*0.5)}s;animation-delay:${i*0.4}s;font-size:0.7rem`;
+                scene.appendChild(d);
+            });
+        }
+    },
+    new_year_eve: {
+        bg: 'linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%)',
+        buildScene(scene) {
+            [[20,18],[55,10],[82,22],[40,6]].forEach(([cx,cy],fi)=>{
+                const cols=['#FFD700','#FF6B6B','#7DF9FF','#FFA500','#FF85C2'];
+                for(let i=0;i<7;i++){
+                    const angle=i*(360/7);
+                    const r=16+(fi%3)*5;
+                    const tx=Math.cos(angle*Math.PI/180)*r, ty=Math.sin(angle*Math.PI/180)*r;
+                    scene.insertAdjacentHTML('beforeend',`<div class="s-spark" style="left:${cx}%;top:${cy}%;background:${cols[(fi+i)%cols.length]};--tx:${tx}px;--ty:${ty}px;animation-duration:${1.1+(fi*0.18)}s;animation-delay:${((fi*0.5)+(i*0.1)).toFixed(2)}s"></div>`);
+                }
+            });
+        }
+    },
+    valentines: {
+        bg: 'linear-gradient(135deg,#9d174d 0%,#db2777 50%,#be185d 100%)',
+        buildScene(scene) {
+            [10,25,42,58,72,88].forEach((l,i)=>{
+                scene.insertAdjacentHTML('beforeend',`
+                <div class="s-heart" style="left:${l}%;bottom:8px;animation-duration:${2.2+(i%3)*0.5}s;animation-delay:${(i*0.38).toFixed(2)}s">
+                    <svg width="${14+(i%3)*4}" height="${13+(i%3)*4}" viewBox="0 0 20 18" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M10 16 C10 16 2 10 2 5.5 C2 3 4 1 6.5 1 C8 1 9.5 2 10 3 C10.5 2 12 1 13.5 1 C16 1 18 3 18 5.5 C18 10 10 16 10 16Z" fill="rgba(255,150,180,0.88)"/>
+                    </svg>
+                </div>`);
+            });
+        }
+    },
+    kasone: {
+        bg: 'linear-gradient(135deg,#14532d 0%,#166534 50%,#065f46 100%)',
+        buildScene(scene) {
+            // Big Bodhi tree silhouette
+            scene.insertAdjacentHTML('beforeend',`
+            <svg style="position:absolute;bottom:0;right:8px;opacity:0.22;width:70px;height:80px" viewBox="0 0 70 80" xmlns="http://www.w3.org/2000/svg">
+                <rect x="30" y="50" width="10" height="30" fill="#4ade80"/>
+                <ellipse cx="35" cy="38" rx="26" ry="28" fill="#4ade80"/>
+                <ellipse cx="22" cy="50" rx="16" ry="14" fill="#4ade80"/>
+                <ellipse cx="48" cy="50" rx="16" ry="14" fill="#4ade80"/>
+            </svg>`);
+            // Falling leaves
+            [8,20,35,50,65,80].forEach((l,i)=>{
+                scene.insertAdjacentHTML('beforeend',`
+                <div class="s-petal" style="left:${l}%;animation-duration:${2.2+(i%3)*0.4}s;animation-delay:${(i*0.35).toFixed(2)}s">
+                    <svg width="12" height="14" viewBox="0 0 12 14" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 1 C10 3 11 7 6 13 C1 7 2 3 6 1Z" fill="rgba(134,239,172,0.85)"/>
+                        <line x1="6" y1="2" x2="6" y2="13" stroke="rgba(134,239,172,0.4)" stroke-width="0.8"/>
+                    </svg>
+                </div>`);
+            });
+        }
+    },
+    waso_begin: {
+        bg: 'linear-gradient(135deg,#3b0764 0%,#581c87 50%,#701a75 100%)',
+        buildScene(scene) {
+            scene.insertAdjacentHTML('beforeend',`<div class="s-moon" style="top:10px;left:16px;width:30px;height:30px;animation-duration:2.8s"></div>`);
+            [20,45,68,85].forEach((l,i)=>{
+                scene.insertAdjacentHTML('beforeend',`
+                <div style="position:absolute;bottom:8px;left:${l}%">
+                    <svg width="16" height="28" viewBox="0 0 16 28" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="5" y="12" width="6" height="16" rx="1" fill="rgba(255,235,180,0.7)"/>
+                        <ellipse cx="8" cy="10" rx="4" ry="6" fill="rgba(255,190,50,0.92)" class="s-candle-flame" style="animation-duration:${0.55+(i%3)*0.12}s"/>
+                        <ellipse cx="8" cy="8" rx="2.5" ry="3.5" fill="rgba(255,240,160,0.75)" class="s-candle-flame" style="animation-duration:${0.55+(i%3)*0.12}s"/>
+                    </svg>
+                </div>`);
+            });
+        }
+    },
+    waso_end: {
+        bg: 'linear-gradient(135deg,#7c2d12 0%,#c2410c 50%,#9a3412 100%)',
+        buildScene(scene) {
+            scene.insertAdjacentHTML('beforeend',`<div class="s-moon" style="top:12px;right:18px;width:32px;height:32px;animation-duration:3s"></div>`);
+            [12,32,54,74,88].forEach((l,i)=>{
+                scene.insertAdjacentHTML('beforeend',`
+                <div style="position:absolute;bottom:6px;left:${l}%">
+                    <svg width="14" height="24" viewBox="0 0 14 24">
+                        <rect x="4" y="10" width="6" height="14" rx="1" fill="rgba(255,220,170,0.7)"/>
+                        <ellipse cx="7" cy="8" rx="3.5" ry="5" fill="rgba(255,160,30,0.9)" class="s-candle-flame" style="animation-duration:${0.5+(i%3)*0.15}s;animation-delay:${(i*0.1).toFixed(2)}s"/>
+                    </svg>
+                </div>`);
+            });
+        }
+    },
+    halloween: {
+        bg: 'linear-gradient(135deg,#431407 0%,#7c2d12 45%,#1c0533 100%)',
+        buildScene(scene) {
+            scene.insertAdjacentHTML('beforeend',`
+            <svg style="position:absolute;bottom:2px;left:8px;opacity:0.5;width:44px;height:40px" viewBox="0 0 44 40">
+                <circle cx="22" cy="20" r="18" fill="#F97316"/>
+                <polygon points="8,8 14,2 16,9" fill="#16A34A"/>
+                <polygon points="10,6 15,0 20,8" fill="#16A34A"/>
+                <path d="M12 20 L16 14 L20 20 L22 16 L24 20 L28 14 L32 20" stroke="#1C1917" stroke-width="2" fill="none"/>
+                <ellipse cx="22" cy="26" rx="7" ry="4" fill="#1C1917" opacity="0.6"/>
+            </svg>
+            <svg style="position:absolute;top:6px;right:60px;opacity:0.35;width:28px;height:22px" viewBox="0 0 28 22">
+                <path d="M14 2 C8 2 4 7 4 12 C4 18 0 22 0 22 L28 22 C28 22 24 18 24 12 C24 7 20 2 14 2Z" fill="#6B21A8"/>
+                <circle cx="10" cy="12" r="2" fill="#A855F7"/>
+                <circle cx="18" cy="12" r="2" fill="#A855F7"/>
+            </svg>`);
+        }
+    },
+    chinese_ny: {
+        bg: 'linear-gradient(135deg,#7f1d1d 0%,#991b1b 50%,#78350f 100%)',
+        buildScene(scene) {
+            // 3 lanterns
+            [[15,4],[50,12],[80,4]].forEach(([l,top],i)=>{
+                scene.insertAdjacentHTML('beforeend',`
+                <div class="s-lantern" style="position:absolute;left:${l}%;top:${top}px;animation-duration:${2.2+(i*0.4)}s;animation-delay:${i*0.6}s">
+                    <svg width="26" height="40" viewBox="0 0 26 40" xmlns="http://www.w3.org/2000/svg">
+                        <line x1="13" y1="0" x2="13" y2="5" stroke="rgba(255,200,50,0.8)" stroke-width="2"/>
+                        <ellipse cx="13" cy="22" rx="11" ry="16" fill="rgba(220,30,30,0.88)"/>
+                        <ellipse cx="13" cy="16" rx="7" ry="8" fill="rgba(255,150,50,0.35)"/>
+                        <line x1="13" y1="38" x2="13" y2="40" stroke="rgba(255,200,50,0.8)" stroke-width="2"/>
+                        <ellipse cx="13" cy="40" rx="4" ry="1.5" fill="rgba(255,200,50,0.6)"/>
+                        <text x="13" y="26" text-anchor="middle" font-size="10" fill="rgba(255,220,100,0.9)">囍</text>
+                    </svg>
+                </div>`);
+            });
+        }
+    },
+    eid_fitr: {
+        bg: 'linear-gradient(135deg,#064e3b 0%,#065f46 50%,#0f4c4c 100%)',
+        buildScene(scene) {
+            scene.insertAdjacentHTML('beforeend',`<div class="s-moon" style="top:8px;right:20px;width:26px;height:26px;animation-duration:3.2s"></div>
+            <div style="position:absolute;top:8px;right:30px;width:10px;height:10px;border-radius:50%;background:rgba(255,235,150,0.85);box-shadow:0 0 8px 3px rgba(255,235,150,0.4)"></div>`);
+            // Stars
+            [[10,15],[30,8],[55,18],[72,6],[88,12]].forEach(([l,t])=>{
+                scene.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:${l}%;top:${t}px;color:rgba(255,235,150,0.8);font-size:0.7rem;animation:flicker 1.8s ease-in-out infinite">✦</div>`);
+            });
+        }
+    },
+    diwali: {
+        bg: 'linear-gradient(135deg,#431407 0%,#9a3412 50%,#3b0764 100%)',
+        buildScene(scene) {
+            // Diyas (oil lamps) row
+            [10,28,46,64,82].forEach((l,i)=>{
+                scene.insertAdjacentHTML('beforeend',`
+                <div style="position:absolute;bottom:4px;left:${l}%">
+                    <svg width="22" height="20" viewBox="0 0 22 20" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M2 14 Q11 18 20 14 L18 20 H4Z" fill="rgba(180,80,10,0.85)"/>
+                        <ellipse cx="11" cy="14" rx="9" ry="3" fill="rgba(210,100,20,0.7)"/>
+                        <ellipse cx="11" cy="9" rx="3.5" ry="5" fill="rgba(255,170,30,0.92)" class="s-candle-flame" style="animation-duration:${0.5+(i%3)*0.15}s"/>
+                        <ellipse cx="11" cy="7" rx="2" ry="3" fill="rgba(255,240,150,0.8)" class="s-candle-flame" style="animation-duration:${0.5+(i%3)*0.15}s"/>
+                    </svg>
+                </div>`);
+            });
+            // Firework sparks
+            [[20,20],[60,14],[82,22]].forEach(([cx,cy],fi)=>{
+                const cols=['#FFD700','#FF8C00','#FF4500'];
+                for(let i=0;i<6;i++){
+                    const angle=i*(360/6);
+                    const r=14+(fi%2)*4;
+                    const tx=Math.cos(angle*Math.PI/180)*r, ty=Math.sin(angle*Math.PI/180)*r;
+                    scene.insertAdjacentHTML('beforeend',`<div class="s-spark" style="left:${cx}%;top:${cy}%;background:${cols[i%cols.length]};--tx:${tx}px;--ty:${ty}px;animation-duration:1s;animation-delay:${((fi*0.5)+(i*0.1)).toFixed(2)}s"></div>`);
+                }
+            });
+        }
+    },
+    // Defaults for remaining holidays (simple moon/stars/petals)
+    _default_moon: {
+        bg: null, // keep holiday-specific bg
+        buildScene(scene) {
+            scene.insertAdjacentHTML('beforeend',`<div class="s-moon" style="top:10px;right:18px;width:28px;height:28px;animation-duration:2.5s"></div>`);
+        }
+    }
+};
+
 function updateSeasonalDecorations() {
     const hero = document.querySelector('.hero');
     if (!hero) return;
 
-    // Clean up previous decorations
-    document.querySelectorAll('.seasonal-decor, .festival-banner').forEach(el => el.remove());
-    // Reset hero gradient
+    // Clean up previous scene
+    hero.querySelectorAll('.season-scene, .hero-festival-title').forEach(el => el.remove());
     document.documentElement.style.setProperty('--hero-bg', 'linear-gradient(135deg,#3B5BDB 0%,#7048E8 60%,#9B59B6 100%)');
 
-    const today = new Date();
-    const yr = today.getFullYear();
+    // Only run on Home screen
+    if (typeof curPage !== 'undefined' && curPage !== 'home') return;
 
-    // Chinese New Year approximate dates
-    const chineseNYDates = {
-        2024: { month: 2, date: 10 }, 2025: { month: 1, date: 29 },
-        2026: { month: 2, date: 17 }, 2027: { month: 2, date: 6  },
-        2028: { month: 1, date: 26 }, 2029: { month: 2, date: 13 },
-        2030: { month: 2, date: 3  }
-    };
-    // Eid al-Fitr approximate
-    const eidFitrDates = {
-        2024: { month: 4, date: 10 }, 2025: { month: 3, date: 31 },
-        2026: { month: 3, date: 20 }, 2027: { month: 3, date: 9  },
-        2028: { month: 2, date: 26 }, 2029: { month: 2, date: 14 }
-    };
-    // Deepavali
-    const deepavaliDates = {
-        2024: { month: 11, date: 1  }, 2025: { month: 10, date: 20 },
-        2026: { month: 11, date: 8  }, 2027: { month: 10, date: 29 },
-        2028: { month: 10, date: 17 }
-    };
+    const now = new Date();
+    const yr = now.getFullYear();
+    const todayMs = new Date(yr, now.getMonth(), now.getDate()).getTime();
+
+    const chineseNY = { 2024:{m:2,d:10}, 2025:{m:1,d:29}, 2026:{m:2,d:17} };
+    const eidFitr   = { 2024:{m:4,d:10}, 2025:{m:3,d:31}, 2026:{m:3,d:20} };
+    const diwali    = { 2024:{m:11,d:1}, 2025:{m:10,d:20}, 2026:{m:11,d:8} };
 
     const holidays = [
-        { id: 'newyear',         month: 1,  date: 1,  label: "New Year's Day",      icon: '🎆' },
-        { id: 'karen_newyear',   month: 1,  date: 14, label: 'Karen New Year',       icon: '🥁' },
-        { id: 'union_day',       month: 2,  date: 12, label: 'Union Day',            icon: '🇲🇲' },
-        { id: 'valentines',      month: 2,  date: 14, label: "Valentine's Day",      icon: '❤️' },
-        { id: 'tabaung',         month: 3,  date: 6,  label: 'Tabaung Full Moon',    icon: '🌕' },
-        { id: 'thingyan',        month: 4,  date: 13, label: 'သင်္ကြန် (Thingyan)',   icon: '💦' },
-        { id: 'myanmar_newyear', month: 4,  date: 17, label: 'Myanmar New Year',     icon: '🙏' },
-        { id: 'workers_day',     month: 5,  date: 1,  label: "Workers' Day",         icon: '🛠️' },
-        { id: 'kasone',          month: 5,  date: 15, label: 'Kasone Full Moon',     icon: '🌳' },
-        { id: 'waso_begin',      month: 7,  date: 10, label: 'Waso (Lent begins)',   icon: '🙏' },
-        { id: 'martyrs_day',     month: 7,  date: 19, label: "Martyrs' Day",        icon: '🥀' },
-        { id: 'dhamma_day',      month: 8,  date: 1,  label: 'Dhamma Day',          icon: '☸️' },
-        { id: 'waso_end',        month: 9,  date: 15, label: 'Waso End',            icon: '🌕' },
-        { id: 'thadingyut',      month: 10, date: 17, label: 'သာဓုကျောင်း (Thadingyut)', icon: '🏮' },
-        { id: 'halloween',       month: 10, date: 31, label: 'Halloween',           icon: '🎃' },
-        { id: 'tazaungdaing',    month: 11, date: 15, label: 'တန်ဆောင်တိုင် (Tazaungdaing)', icon: '🎈' },
-        { id: 'national_day',    month: 12, date: 10, label: 'National Day',        icon: '🇲🇲' },
-        { id: 'christmas',       month: 12, date: 25, label: 'Christmas',           icon: '🎄' },
-        { id: 'new_year_eve',    month: 12, date: 31, label: "New Year's Eve",      icon: '🥂' },
+        {id:'newyear',         nameMm:'နှစ်သစ်ကူး',            name:'New Year',            m:1, d:1},
+        {id:'karen_newyear',   nameMm:'ကရင်နှစ်သစ်ကူး',        name:'Karen New Year',      m:1, d:14},
+        {id:'union_day',       nameMm:'ပြည်ထောင်စုနေ့',         name:'Union Day',           m:2, d:12},
+        {id:'valentines',      nameMm:'ချစ်သူများနေ့',          name:"Valentine's Day",     m:2, d:14},
+        {id:'tabaung',         nameMm:'တပေါင်းပွဲတော်',         name:'Tabaung Festival',    m:3, d:6},
+        {id:'thingyan',        nameMm:'သင်္ကြန်ပွဲတော်',        name:'Thingyan Festival',   m:4, d:13},
+        {id:'myanmar_newyear', nameMm:'မြန်မာနှစ်သစ်ကူး',       name:'Myanmar New Year',    m:4, d:17},
+        {id:'workers_day',     nameMm:'အလုပ်သမားနေ့',           name:"Workers' Day",        m:5, d:1},
+        {id:'kasone',          nameMm:'ကဆုန်လပြည့်',            name:'Kasone Festival',     m:5, d:15},
+        {id:'waso_begin',      nameMm:'ဝါဆိုလပြည့်',            name:'Waso Festival',       m:7, d:10},
+        {id:'martyrs_day',     nameMm:'အာဇာနည်နေ့',            name:"Martyrs' Day",        m:7, d:19},
+        {id:'dhamma_day',      nameMm:'ဓမ္မစကြာနေ့',            name:'Dhamma Day',          m:8, d:1},
+        {id:'waso_end',        nameMm:'သီတင်းကျွတ်လပြည့်',     name:'End of Waso',         m:9, d:15},
+        {id:'thadingyut',      nameMm:'သီတင်းကျွတ်ပွဲတော်',    name:'Thadingyut Festival', m:10,d:17},
+        {id:'halloween',       nameMm:'ဟယ်လိုဝင်း',             name:'Halloween',           m:10,d:31},
+        {id:'tazaungdaing',    nameMm:'တန်ဆောင်တိုင်ပွဲတော်',  name:'Tazaungdaing',        m:11,d:15},
+        {id:'national_day',    nameMm:'အမျိုးသားနေ့',           name:'National Day',        m:12,d:10},
+        {id:'christmas',       nameMm:'ခရစ္စမတ်',               name:'Christmas',           m:12,d:25},
+        {id:'new_year_eve',    nameMm:'နှစ်သစ်ကူးအကြိုည',      name:"New Year's Eve",      m:12,d:31},
     ];
+    if (chineseNY[yr]) holidays.push({id:'chinese_ny', nameMm:'တရုတ်နှစ်သစ်ကူး', name:'Chinese New Year', m:chineseNY[yr].m, d:chineseNY[yr].d});
+    if (eidFitr[yr])   holidays.push({id:'eid_fitr',   nameMm:'အီဒွလ်ဖီသရ်',    name:'Eid al-Fitr',      m:eidFitr[yr].m,   d:eidFitr[yr].d});
+    if (diwali[yr])    holidays.push({id:'diwali',     nameMm:'ဒီပါဝလီ',        name:'Deepavali',        m:diwali[yr].m,    d:diwali[yr].d});
 
-    if (chineseNYDates[yr]) holidays.push({ id: 'chinese_ny', month: chineseNYDates[yr].month, date: chineseNYDates[yr].date, label: 'Chinese New Year', icon: '🏮' });
-    if (eidFitrDates[yr])   holidays.push({ id: 'eid_fitr',   month: eidFitrDates[yr].month,   date: eidFitrDates[yr].date,   label: 'Eid al-Fitr',     icon: '🌙' });
-    if (deepavaliDates[yr]) holidays.push({ id: 'diwali',     month: deepavaliDates[yr].month,  date: deepavaliDates[yr].date, label: 'Diwali',          icon: '🪔' });
-
-    const decorations = {
-        'thingyan':        { bg: 'linear-gradient(135deg, #006994 0%, #0891B2 40%, #059669 100%)', emojis: ['💦', '🌸'], anim: ['float', 'swing'] },
-        'myanmar_newyear': { bg: 'linear-gradient(135deg, #B45309 0%, #D97706 40%, #92400E 100%)', emojis: ['☀️', '🙏'], anim: ['pulse', 'float'] },
-        'newyear':         { bg: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 40%, #4c1d95 100%)', emojis: ['🎆', '✨'], anim: ['float', 'shimmer'] },
-        'new_year_eve':    { bg: 'linear-gradient(135deg, #0c0a1e 0%, #1e1b4b 50%, #2e1065 100%)', emojis: ['🥂', '🎇'], anim: ['float', 'shimmer'] },
-        'karen_newyear':   { bg: 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #6b21a8 100%)', emojis: ['🥁', '🌾'], anim: ['swing', 'float'] },
-        'union_day':       { bg: 'linear-gradient(135deg, #14532d 0%, #166534 50%, #7f1d1d 100%)', emojis: ['🇲🇲', '🕊️'], anim: ['float', 'pulse'] },
-        'valentines':      { bg: 'linear-gradient(135deg, #9f1239 0%, #be185d 50%, #831843 100%)', emojis: ['❤️', '🌹'], anim: ['pulse', 'float'] },
-        'tabaung':         { bg: 'linear-gradient(135deg, #78350f 0%, #92400e 50%, #7c2d12 100%)', emojis: ['🌕', '🧘'], anim: ['pulse', 'float'] },
-        'workers_day':     { bg: 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #1e3a5f 100%)', emojis: ['🛠️', '💪'], anim: ['float', 'pulse'] },
-        'kasone':          { bg: 'linear-gradient(135deg, #14532d 0%, #166534 50%, #15803d 100%)', emojis: ['🌳', '💧'], anim: ['float', 'swing'] },
-        'waso_begin':      { bg: 'linear-gradient(135deg, #3b0764 0%, #4a044e 50%, #500724 100%)', emojis: ['🙏', '🕯️'], anim: ['pulse', 'shimmer'] },
-        'martyrs_day':     { bg: 'linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #3b0f0f 100%)', emojis: ['🥀', '🇲🇲'], anim: ['float', 'pulse'] },
-        'dhamma_day':      { bg: 'linear-gradient(135deg, #3b0764 0%, #500724 50%, #7c2d12 100%)', emojis: ['☸️', '🌸'], anim: ['float', 'pulse'] },
-        'waso_end':        { bg: 'linear-gradient(135deg, #7c2d12 0%, #9a3412 50%, #431407 100%)', emojis: ['🌕', '🙏'], anim: ['pulse', 'float'] },
-        'thadingyut':      { bg: 'linear-gradient(135deg, #78350f 0%, #92400e 50%, #7c2d12 100%)', emojis: ['🏮', '✨'], anim: ['float', 'shimmer'] },
-        'tazaungdaing':    { bg: 'linear-gradient(135deg, #7c2d12 0%, #4c1d95 50%, #500724 100%)', emojis: ['🎈', '🔥'], anim: ['float', 'swing'] },
-        'national_day':    { bg: 'linear-gradient(135deg, #1e3a5f 0%, #1e40af 50%, #7f1d1d 100%)', emojis: ['🇲🇲', '🎉'], anim: ['float', 'pulse'] },
-        'christmas':       { bg: 'linear-gradient(135deg, #14532d 0%, #166534 50%, #7f1d1d 100%)', emojis: ['🎄', '❄️'], anim: ['float', 'swing'] },
-        'halloween':       { bg: 'linear-gradient(135deg, #3b0000 0%, #7c2d00 50%, #1a0030 100%)', emojis: ['🎃', '🦇'], anim: ['float', 'swing'] },
-        'chinese_ny':      { bg: 'linear-gradient(135deg, #7f1d1d 0%, #991b1b 50%, #78350f 100%)', emojis: ['🏮', '🐉'], anim: ['swing', 'float'] },
-        'eid_fitr':        { bg: 'linear-gradient(135deg, #064e3b 0%, #065f46 50%, #004d40 100%)', emojis: ['🌙', '🕌'], anim: ['pulse', 'float'] },
-        'diwali':          { bg: 'linear-gradient(135deg, #7c2d12 0%, #78350f 50%, #3b0764 100%)', emojis: ['🪔', '✨'], anim: ['float', 'shimmer'] },
-    };
-
-    // Find the nearest upcoming/current holiday within 7 days (show 3 days before + 3 days on + 3 days after)
-    let activeHoliday = null;
-    let activeDiff = 999;
-    let activeHolidayData = null;
-
-    for (let h of holidays) {
-        const targetDate = new Date(yr, h.month - 1, h.date);
-        // Normalize to midnight for day comparison
-        const todayMidnight = new Date(yr, today.getMonth(), today.getDate());
-        const diffDays = Math.round((targetDate.getTime() - todayMidnight.getTime()) / 86400000);
-        // Show if within -3 to +3 days window
-        if (diffDays >= -3 && diffDays <= 3) {
-            if (Math.abs(diffDays) < Math.abs(activeDiff)) {
-                activeHoliday = h.id;
-                activeDiff = diffDays;
-                activeHolidayData = h;
-            }
+    // Find active holiday: 3 days before → on the day (NOT the day after)
+    let activeHoliday = null, minDiff = 999;
+    for (const h of holidays) {
+        const hMs = new Date(yr, h.m - 1, h.d).getTime();
+        const diff = Math.round((hMs - todayMs) / 86400000); // positive = upcoming, 0 = today, negative = past
+        if (diff >= 0 && diff <= 3 && diff < minDiff) {
+            activeHoliday = h; minDiff = diff;
         }
     }
+    if (!activeHoliday) return;
 
-    if (!activeHoliday || !decorations[activeHoliday]) return;
+    // Get scene config (fallback to default moon for unspecified ones)
+    const sceneKey = SEASON_DATA[activeHoliday.id] ? activeHoliday.id : null;
+    const sceneCfg = sceneKey ? SEASON_DATA[sceneKey] : null;
 
-    const dec = decorations[activeHoliday];
-
-    // Apply gradient background
-    document.documentElement.style.setProperty('--hero-bg', dec.bg);
-
-    // Add emoji decorations - larger and more visible
-    const positions = [
-        { className: 'seasonal-decor decor-top-right', animClass: dec.anim[0] || 'float' },
-        { className: 'seasonal-decor decor-bottom-left', animClass: dec.anim[1] || 'swing' },
-    ];
-
-    dec.emojis.forEach((emoji, i) => {
-        if (i >= positions.length) return;
-        const el = document.createElement('div');
-        el.className = positions[i].className + ' ' + positions[i].animClass;
-        el.textContent = emoji;
-        hero.appendChild(el);
-    });
-
-    // Add festival banner with name & countdown
-    const banner = document.createElement('div');
-    banner.className = 'festival-banner';
-
-    let countdownText = '';
-    let countdownClass = 'festival-countdown';
-    if (activeDiff === 0) {
-        countdownText = '🎉 Today!';
-        countdownClass += ' today';
-    } else if (activeDiff > 0) {
-        countdownText = `${activeDiff} day${activeDiff > 1 ? 's' : ''} away →`;
-        countdownClass += ' soon';
-    } else {
-        countdownText = `${Math.abs(activeDiff)} day${Math.abs(activeDiff) > 1 ? 's' : ''} ago`;
-        countdownClass += ' soon';
+    // Apply holiday-specific gradient BG
+    const bgMap = {
+        thingyan:'linear-gradient(135deg,#0ea5e9 0%,#06b6d4 45%,#0d9488 100%)',
+        myanmar_newyear:'linear-gradient(135deg,#f59e0b 0%,#ea580c 50%,#9a3412 100%)',
+        thadingyut:'linear-gradient(135deg,#1c1917 0%,#44403c 40%,#78350f 100%)',
+        tazaungdaing:'linear-gradient(135deg,#1e1b4b 0%,#4c1d95 50%,#831843 100%)',
+        christmas:'linear-gradient(135deg,#14532d 0%,#166534 50%,#7f1d1d 100%)',
+        newyear:'linear-gradient(135deg,#1e1b4b 0%,#3730a3 50%,#4c1d95 100%)',
+        new_year_eve:'linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%)',
+        valentines:'linear-gradient(135deg,#9d174d 0%,#db2777 50%,#be185d 100%)',
+        kasone:'linear-gradient(135deg,#14532d 0%,#166534 50%,#065f46 100%)',
+        waso_begin:'linear-gradient(135deg,#3b0764 0%,#581c87 50%,#701a75 100%)',
+        waso_end:'linear-gradient(135deg,#7c2d12 0%,#c2410c 50%,#9a3412 100%)',
+        halloween:'linear-gradient(135deg,#431407 0%,#7c2d12 45%,#1c0533 100%)',
+        chinese_ny:'linear-gradient(135deg,#7f1d1d 0%,#991b1b 50%,#78350f 100%)',
+        eid_fitr:'linear-gradient(135deg,#064e3b 0%,#065f46 50%,#0f4c4c 100%)',
+        diwali:'linear-gradient(135deg,#431407 0%,#9a3412 50%,#3b0764 100%)',
+        karen_newyear:'linear-gradient(135deg,#991b1b 0%,#b91c1c 50%,#6b21a8 100%)',
+        union_day:'linear-gradient(135deg,#166534 0%,#15803d 50%,#b91c1c 100%)',
+        tabaung:'linear-gradient(135deg,#78350f 0%,#b45309 50%,#4a044e 100%)',
+        workers_day:'linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 50%,#991b1b 100%)',
+        martyrs_day:'linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#7f1d1d 100%)',
+        dhamma_day:'linear-gradient(135deg,#500724 0%,#831843 50%,#9a3412 100%)',
+        national_day:'linear-gradient(135deg,#1e40af 0%,#1d4ed8 50%,#b91c1c 100%)',
+    };
+    if (bgMap[activeHoliday.id]) {
+        document.documentElement.style.setProperty('--hero-bg', bgMap[activeHoliday.id]);
     }
 
-    banner.innerHTML = `
-        <div class="festival-banner-name">
-            <span class="fest-icon">${activeHolidayData.icon || dec.emojis[0]}</span>
-            <span>${activeHolidayData.label}</span>
-        </div>
-        <div class="${countdownClass}">${countdownText}</div>
-    `;
-    hero.appendChild(banner);
+    // Build scene container
+    const scene = document.createElement('div');
+    scene.className = 'season-scene';
+    if (sceneCfg && sceneCfg.buildScene) {
+        sceneCfg.buildScene(scene);
+    }
+    hero.appendChild(scene);
 
-    // Adjust hero padding-bottom to accommodate banner
-    hero.style.paddingBottom = '52px';
+    // Festival title badge
+    const badge = document.createElement('div');
+    badge.className = 'hero-festival-title';
+    const isMM = db && db.settings && db.settings.lang === 'mm';
+    badge.textContent = (isMM && activeHoliday.nameMm) ? activeHoliday.nameMm : activeHoliday.name;
+    hero.appendChild(badge);
 }
 function updateHero() { 
     document.getElementById('h-total').textContent = fmt(totalBalance()); 
@@ -3118,7 +3548,6 @@ function updateHero() {
     const el = document.getElementById('h-date'); 
     if(el) el.textContent = new Date().toLocaleDateString('en-US', {weekday:'long', year:'numeric', month:'long', day:'numeric'}); 
     
-    // Reset hero padding before decoration (may set it if festival banner added)
     const heroEl = document.querySelector('.hero');
     if (heroEl) heroEl.style.paddingBottom = '';
     
@@ -3360,14 +3789,13 @@ function deleteTx(id) {
     if(!txToDelete) { toast('Transaction not found'); return; } 
     
     showConfirm('del', t('delete_tx_title'), t('delete_tx_msg'), function() {
-        const t_obj = db.transactions.find(x => x.id === id); 
-        if(!t_obj) return; 
-        reverseTx(t_obj); 
+        reverseTx(txToDelete); 
         db.transactions = db.transactions.filter(x => x.id !== id); 
         trackDeletedId(id);
+        pushToBin({ type: 'tx', label: 'Tx: ' + (txToDelete.note || txToDelete.txId), payload: txToDelete });
         dbSave(); 
         renderHome(); renderTxPage(); updateHero(); 
-        toast('Transaction deleted');
+        toast('deleted_to_bin');
     }, t('confirm_delete')); 
 }
 
@@ -3607,7 +4035,7 @@ function openDmModal(id = null) {
         document.getElementById('dm-cat').value = e.category || ''; 
         document.getElementById('dm-amt').value = (e.amount || '').toLocaleString('en-US'); 
         document.getElementById('dm-note').value = e.note || ''; 
-        const dtVal = e.datetime || (getDateStr(e.datetime) + 'T' + nowDT().split('T')[1]); 
+        const dtVal = e.datetime || nowDT();
         document.getElementById('dm-date').value = dtVal.length > 10 ? dtVal.slice(0,16) : dtVal + 'T' + nowDT().split('T')[1]; 
     } else { 
         dmType = db.settings.lastDmType || dmType || 'expense'; 
@@ -3645,8 +4073,9 @@ function deleteDm(id) {
     showConfirm('del', t('delete_exp_title'), t('delete_exp_msg'), function() {
         db.dailyMoney = db.dailyMoney.filter(x => x.id !== id); 
         trackDeletedId(id);
+        pushToBin({ type: 'dm', label: 'DM: ' + dmToDelete.category, payload: dmToDelete });
         dbSave(); cleanupDmCategories(); buildDmDayStrip(); renderDmPage(); 
-        toast('Deleted');
+        toast('deleted_to_bin');
     }, t('confirm_delete')); 
 }
 
@@ -3891,7 +4320,7 @@ function openExpModal(id = null) {
         document.getElementById('exp-cat').value = e.category || ''; 
         document.getElementById('exp-amt').value = (e.amount || '').toLocaleString('en-US'); 
         document.getElementById('exp-note').value = e.note || ''; 
-        const dtVal = e.datetime || (getDateStr(e.datetime) + 'T' + nowDT().split('T')[1]); 
+        const dtVal = e.datetime || nowDT();
         document.getElementById('exp-date').value = dtVal.length > 10 ? dtVal.slice(0,16) : dtVal + 'T' + nowDT().split('T')[1]; 
     } else { 
         expType = db.settings.lastExpType || expType || 'expense'; 
@@ -3931,8 +4360,9 @@ function deleteExp(id) {
     showConfirm('del', t('delete_exp_title'), t('delete_exp_msg'), function() {
         db.expenses = db.expenses.filter(x => x.id !== id); 
         trackDeletedId(id);
+        pushToBin({ type: 'exp', label: 'Exp: ' + expToDelete.category, payload: expToDelete });
         dbSave(); cleanupCategories(); buildExpDayStrip(); renderExpPage(); 
-        toast('Deleted');
+        toast('deleted_to_bin');
     }, t('confirm_delete')); 
 }
 
@@ -4062,8 +4492,10 @@ function saveSubFolder() {
 
 function deleteSubFolder(id) { 
     showConfirm('del', t('delete_folder_title'), t('delete_folder_msg'), function() {
+        const sf = db.debtSubFolders.find(f => f.id === id);
+        if (sf) pushToBin({ type: 'subfolder', label: 'Folder: ' + sf.name, payload: sf });
         db.debtSubFolders = db.debtSubFolders.filter(f => f.id !== id); 
-        dbSave(); renderDebts(); toast('Folder deleted');
+        dbSave(); renderDebts(); toast('deleted_to_bin');
     }, t('confirm_delete')); 
 }
 
@@ -4202,13 +4634,22 @@ function saveDebt() {
 function deleteDebtEntry(id) { 
     const entryId = id; 
     showConfirm('del', t('delete_debt_title'), t('delete_debt_msg'), function() {
+        let foundEntry = null, pName = '';
         for(const p of db.debts) {
             const i = p.entries.findIndex(x => x.id === entryId); 
-            if(i > -1) { p.entries.splice(i, 1); break; }
+            if(i > -1) { 
+                foundEntry = p.entries[i];
+                pName = p.name;
+                p.entries.splice(i, 1); 
+                break; 
+            }
         } 
+        if (foundEntry) {
+            pushToBin({ type: 'debt_entry', label: 'Debt: ' + (foundEntry.note || foundEntry.amount), payload: { profileName: pName, entry: foundEntry } });
+        }
         db.debts = db.debts.filter(p => p.entries.length > 0); 
         trackDeletedId(entryId);
-        dbSave(); cleanupDebtNames(); renderDebts(); toast('Deleted');
+        dbSave(); cleanupDebtNames(); renderDebts(); toast('deleted_to_bin');
     }, t('confirm_delete')); 
 }
 
@@ -4245,9 +4686,12 @@ function deleteDebtProfile(name) {
     let msg = t('delete_profile_msg').replace('{name}', profileName);
     showConfirm('del', t('delete_profile_title'), msg, function() { 
         const p = db.debts.find(pr => pr.name === profileName);
-        if(p && p.entries) { p.entries.forEach(e => trackDeletedId(e.id)); }
+        if(p) {
+            if(p.entries) p.entries.forEach(e => trackDeletedId(e.id));
+            pushToBin({ type: 'debt_profile', label: 'Profile: ' + profileName, payload: p });
+        }
         db.debts = db.debts.filter(pr => pr.name !== profileName); 
-        dbSave(); cleanupDebtNames(); renderDebts(); toast(t('removed_msg').replace('{name}', profileName) || 'Removed'); 
+        dbSave(); cleanupDebtNames(); renderDebts(); toast('deleted_to_bin'); 
     }, t('confirm_delete')); 
 }
 
@@ -4296,12 +4740,11 @@ function renderProfileCard(p) {
     const isClipped = activeEntries.length > maxEntriesToShow;
     const displayActiveEntries = isClipped ? activeEntries.slice(0, 30) : activeEntries;
 
-    // GROUPING LOGIC
     const today = todayStr();
     let yestD = new Date(today + 'T00:00:00'); yestD.setDate(yestD.getDate() - 1);
     const yesterday = toLocalIso(yestD);
 
-    const groupedActive = {}; // Structure: { "Day:2023-10-05": [], "Month:2023-09": [] }
+    const groupedActive = {}; 
     
     displayActiveEntries.forEach(e => {
         const dStr = getDateStr(e.date || e.ts);
@@ -4310,13 +4753,12 @@ function renderProfileCard(p) {
             if(!groupedActive[key]) groupedActive[key] = [];
             groupedActive[key].push(e);
         } else {
-            const monthKey = "Month:" + dStr.slice(0, 7); // e.g., 2023-10
+            const monthKey = "Month:" + dStr.slice(0, 7); 
             if(!groupedActive[monthKey]) groupedActive[monthKey] = [];
             groupedActive[monthKey].push(e);
         }
     });
 
-    // Sort group keys: Days first (newest), then Months (newest)
     const sortedKeys = Object.keys(groupedActive).sort((a,b) => b.split(':')[1].localeCompare(a.split(':')[1]));
 
     let entriesHtml = sortedKeys.map((key, idx) => {
@@ -4329,7 +4771,6 @@ function renderProfileCard(p) {
         if (gType === 'Day') {
             headerLabel = dayLabel(gVal);
         } else {
-            // Month Grouping
             const [y, m] = gVal.split('-');
             headerLabel = new Date(Number(y), Number(m)-1, 1).toLocaleDateString('en-US', {month:'long', year:'numeric'});
             isCollapsedByDefault = true;
@@ -4352,7 +4793,6 @@ function renderProfileCard(p) {
             const eid = e.id;
             const paidBtn = e.debtType !== 'settled' ? `<button class="act-edit" onclick="event.stopPropagation();markSettled('${eid}')">${t('paid_btn')}</button>` : '';
 
-            // if month group, add the date snippet below time
             const extraDateStr = (gType === 'Month') ? ` · ${fmtDate(getDateStr(e.date || e.ts))}` : '';
 
             return `
@@ -5030,7 +5470,7 @@ function restoreFromFile(ev) {
             let importedData = JSON.parse(e.target.result);
             db = Object.assign(FRESH_DB(), importedData);
             
-            ['savedProviders','savedDmCategories','savedCategories','savedDebtNames','reminders','notifications','debtSubFolders','deletedIds','openingsHistory','dailyMoney','expenses'].forEach(k => { if(!db[k]) db[k] = []; });
+            ['savedProviders','savedDmCategories','savedCategories','savedDebtNames','reminders','notifications','debtSubFolders','deletedIds','openingsHistory','dailyMoney','expenses','recycleBin'].forEach(k => { if(!db[k]) db[k] = []; });
             
             if (!db.settings.migrated_to_dm_v5) {
                 if (db.expenses && db.expenses.length > 0 && (!db.dailyMoney || db.dailyMoney.length === 0)) {
@@ -5180,11 +5620,10 @@ function openClearSpecificModal() {
 
     const sortedMonths = Array.from(dates).sort((a,b) => b.localeCompare(a));
     
-    // Reset state
     _clearTab = 'all';
     _clearMonth = 'all';
     document.querySelectorAll('#clear-tab-chips .chip').forEach(c => c.classList.remove('on'));
-    document.querySelector('#clear-tab-chips .chip').classList.add('on'); // First one is 'All Tabs'
+    document.querySelector('#clear-tab-chips .chip').classList.add('on'); 
 
     let optsHtml = `<div class="chip on" onclick="setClearMonth('all', this)">${t('all_months')}</div>`;
     sortedMonths.forEach(m => {
@@ -5207,9 +5646,9 @@ function confirmClearSpecific() {
     let monthName = month === 'all' ? 'All Months' : month;
     if (db.settings.lang === 'mm') monthName = month === 'all' ? 'လအားလုံး' : month;
 
-    let confirmMsg = `Are you sure you want to delete data for ${tabName} in ${monthName}? This cannot be undone.`;
+    let confirmMsg = `Move data for ${tabName} in ${monthName} to Recycle Bin?`;
     if (db.settings.lang === 'mm') {
-        confirmMsg = `ဒေတာများကို ${tabName} မှ ${monthName} အတွက် ဖျက်မည် သေချာပါသလား?`;
+        confirmMsg = `${tabName} မှ ${monthName} အတွက် ဒေတာများကို အမှိုက်ပုံးသို့ ရွှေ့မည်လော?`;
     }
 
     showConfirm('del', t('clear_specific'), confirmMsg, () => {
@@ -5217,21 +5656,15 @@ function confirmClearSpecific() {
     }, t('confirm_delete'));
 }
 
-// Undo buffer for Clear Specific Data
-let _clearUndoBuffer = null;
-let _clearUndoTimer = null;
-
 function doClearSpecific(tab, month) {
     const snapshot = {
-        tab, month,
-        transactions: tab === 'all' || tab === 'tx' ? JSON.parse(JSON.stringify(db.transactions)) : null,
-        dailyMoney:   tab === 'all' || tab === 'dm'  ? JSON.parse(JSON.stringify(db.dailyMoney))  : null,
-        expenses:     tab === 'all' || tab === 'exp' ? JSON.parse(JSON.stringify(db.expenses))     : null,
-        debts:        tab === 'all' || tab === 'debts' ? JSON.parse(JSON.stringify(db.debts))      : null,
+        transactions: tab === 'all' || tab === 'tx' ? [] : null,
+        dailyMoney:   tab === 'all' || tab === 'dm'  ? [] : null,
+        expenses:     tab === 'all' || tab === 'exp' ? [] : null,
+        debts:        tab === 'all' || tab === 'debts' ? [] : null,
     };
-    _clearUndoBuffer = snapshot;
 
-    const filterFn = (item) => {
+    const filterFn = (item, arrToPush) => {
         let dtStr = item.datetime || item.date || '';
         if (!dtStr && item.ts) {
             const d = new Date(item.ts);
@@ -5240,56 +5673,30 @@ function doClearSpecific(tab, month) {
         if (!dtStr) return true; 
         if (month !== 'all' && !dtStr.startsWith(month)) return true;
         trackDeletedId(item.id);
+        arrToPush.push(item);
         return false; 
     };
 
-    if (tab === 'all' || tab === 'tx') db.transactions = db.transactions.filter(filterFn);
-    if (tab === 'all' || tab === 'dm') db.dailyMoney = db.dailyMoney.filter(filterFn);
-    if (tab === 'all' || tab === 'exp') db.expenses = db.expenses.filter(filterFn);
+    if (tab === 'all' || tab === 'tx') db.transactions = db.transactions.filter(x => filterFn(x, snapshot.transactions));
+    if (tab === 'all' || tab === 'dm') db.dailyMoney = db.dailyMoney.filter(x => filterFn(x, snapshot.dailyMoney));
+    if (tab === 'all' || tab === 'exp') db.expenses = db.expenses.filter(x => filterFn(x, snapshot.expenses));
     if (tab === 'all' || tab === 'debts') {
-        db.debts.forEach(p => { p.entries = p.entries.filter(filterFn); });
+        db.debts.forEach(p => { 
+            const toRemove = [];
+            p.entries = p.entries.filter(e => filterFn(e, toRemove)); 
+            if (toRemove.length) {
+                snapshot.debts.push({ name: p.name, entries: toRemove });
+            }
+        });
         db.debts = db.debts.filter(p => p.entries.length > 0);
     }
+
+    pushToBin({ type: 'batch', label: 'Batch Clear: ' + tab + ' - ' + month, payload: snapshot });
 
     dbSave();
     closeM('m-clear-specific');
     refreshAll();
-
-    // Show undo toast (stays for 8 seconds)
-    if (_clearUndoTimer) clearTimeout(_clearUndoTimer);
-    const toastEl = document.getElementById('toast'); 
-    toastEl.className = 'toast has-undo on';
-    toastEl.innerHTML = `<span>🗑️ Data deleted</span><button class="toast-undo-btn" onclick="undoClearSpecific()">↩ Undo</button>`;
-    
-    // Prevent normal toast auto-hide
-    clearTimeout(toastEl._t);
-    
-    _clearUndoTimer = setTimeout(() => {
-        _clearUndoBuffer = null;
-        toastEl.classList.remove('on', 'has-undo');
-        setTimeout(() => { toastEl.innerHTML = ''; }, 300);
-    }, 8000);
-}
-
-function undoClearSpecific() {
-    if (!_clearUndoBuffer) { toast('Nothing to undo'); return; }
-    const snap = _clearUndoBuffer;
-    _clearUndoBuffer = null;
-    if (_clearUndoTimer) { clearTimeout(_clearUndoTimer); _clearUndoTimer = null; }
-
-    if (snap.transactions !== null) db.transactions = snap.transactions;
-    if (snap.dailyMoney !== null) db.dailyMoney = snap.dailyMoney;
-    if (snap.expenses !== null) db.expenses = snap.expenses;
-    if (snap.debts !== null) db.debts = snap.debts;
-
-    dbSave();
-    refreshAll();
-
-    const toastEl = document.getElementById('toast');
-    if (toastEl) { 
-        toastEl.classList.remove('on', 'has-undo'); 
-        setTimeout(() => { toastEl.innerHTML = ''; toast('✅ Restored successfully!'); }, 300); 
-    }
+    toast('deleted_to_bin');
 }
 
 function clearAllData() {
@@ -5575,6 +5982,13 @@ async function pullFromCloud(force=false) {
             merged.savedDmCategories = [...new Set([...(cloud.savedDmCategories||[]), ...(db.savedDmCategories||[])])];
             merged.savedCategories = [...new Set([...(cloud.savedCategories||[]), ...(db.savedCategories||[])])];
             merged.savedDebtNames  = [...new Set([...(cloud.savedDebtNames||[]),  ...(db.savedDebtNames||[])])];
+            
+            // Keep local Recycle Bin intact (cloud doesn't overwrite it, just append if needed)
+            const rbMap = new Map();
+            [...(db.recycleBin||[]), ...(cloud.recycleBin||[])].forEach(b => {
+               if(b && b.binId) rbMap.set(b.binId, b); 
+            });
+            merged.recycleBin = Array.from(rbMap.values()).sort((a,b) => b.ts - a.ts).slice(0, 5);
 
             const provMap = {};
             (cloud.providers||[]).forEach(p => { if(p&&p.id) provMap[p.id] = p; });
@@ -5690,11 +6104,42 @@ function showNextAlert() {
             osc.start(ctx.currentTime + start); osc.stop(ctx.currentTime + start + dur);
         };
         play(880, 0, 0.2); play(1100, 0.25, 0.2); play(880, 0.5, 0.4); play(1320, 0.9, 0.4);
+        setTimeout(() => { try { ctx.close(); } catch(e){} }, 2000);
     } catch(e) {}
 
-    const banner = document.getElementById('alertBanner'), el = document.createElement('div'); el.className = 'alert-toast';
+    const banner = document.getElementById('alertBanner');
+    const el = document.createElement('div');
+    el.className = 'alert-toast';
     el.setAttribute('data-rid', r.id);
-    el.innerHTML = `<div class="alert-toast-icon">⚠️</div><div class="alert-toast-body" onclick="handleAlertTap()"><div class="alert-toast-title">${t('important_alert')}: ${r.title}</div><div class="alert-toast-sub">${r.time||''} — ${t('tap_to_view')}</div></div><span class="alert-toast-x" onclick="event.stopPropagation();dismissAlert(this.parentElement, '${r.id}')">✕</span>`;
+
+    const iconDiv = document.createElement('div');
+    iconDiv.className = 'alert-toast-icon';
+    iconDiv.textContent = '⚠️';
+
+    const bodyDiv = document.createElement('div');
+    bodyDiv.className = 'alert-toast-body';
+    bodyDiv.onclick = handleAlertTap;
+
+    const titleDiv = document.createElement('div');
+    titleDiv.className = 'alert-toast-title';
+    titleDiv.textContent = t('important_alert') + ': ' + (r.title || '');
+
+    const subDiv = document.createElement('div');
+    subDiv.className = 'alert-toast-sub';
+    subDiv.textContent = (r.time || '') + ' — ' + t('tap_to_view');
+
+    bodyDiv.appendChild(titleDiv);
+    bodyDiv.appendChild(subDiv);
+
+    const closeSpan = document.createElement('span');
+    closeSpan.className = 'alert-toast-x';
+    closeSpan.textContent = '✕';
+    closeSpan.onclick = (e) => { e.stopPropagation(); dismissAlert(el, r.id); };
+
+    el.appendChild(iconDiv);
+    el.appendChild(bodyDiv);
+    el.appendChild(closeSpan);
+
     banner.appendChild(el);
     setTimeout(() => { if (el.parentElement) dismissAlert(el, r.id); }, 10000);
 }
