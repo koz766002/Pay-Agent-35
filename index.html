@@ -159,13 +159,11 @@
 
         /* --- shared badge --- */
         .hero-festival-title {
-            position:absolute; top:14px; right:16px; font-size:0.6rem; font-weight:800;
-            color:#fff; text-transform:uppercase; letter-spacing:1px; z-index:10;
-            padding:4px 12px; border-radius:20px;
-            border:1px solid rgba(255,255,255,0.30);
-            background:rgba(0,0,0,0.18); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
-            animation: seasonBadgeIn 0.5s cubic-bezier(0.34,1.56,0.64,1) both;
-            transform-origin: right top;
+            position: absolute; bottom: 20px; right: 24px; font-size: 0.7rem; font-weight: 700;
+            color: rgba(255, 255, 255, 0.7); text-transform: uppercase; letter-spacing: 1px; z-index: 10; background: none !important;
+            border: none !important; backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important; padding: 0;
+            animation: seasonBadgeIn 0.5s ease-out both;
         }
         @keyframes seasonBadgeIn { from{opacity:0;transform:scale(0.7)} to{opacity:1;transform:scale(1)} }
 
@@ -1165,6 +1163,11 @@
                 </div>
                 <div class="fgrp"><label class="flbl">Transaction ID <span style="font-weight:400;text-transform:none;font-size:0.65rem;color:var(--text3);margin-left:4px">(auto · tap to select)</span></label><input class="finput mono" id="tx-id" placeholder="Auto-generated" onclick="this.select()" autocomplete="off"></div>
                 <div class="fgrp"><label class="flbl">Provider / Channel</label><input class="finput" id="tx-provider" placeholder="Type provider name..." autocomplete="off" oninput="onProviderInput()"><div class="ac-chips" id="providerChips"></div></div>
+                <!-- Transfer From/To fields - shown only when txType=Transfer -->
+                <div id="tx-transfer-fields" style="display:none">
+                    <div class="fgrp"><label class="flbl" data-i18n="transfer_from" style="color:var(--red)">From (ဘယ်ကထွက်)</label> <select class="finput" id="tx-transfer-from" onchange="onTransferFromChange()"></select></div>
+                    <div class="fgrp"><label class="flbl" data-i18n="transfer_to" style="color:var(--green)">To (ဘယ်ထဲဝင်)</label><select class="finput" id="tx-transfer-to" onchange="onTransferToChange()"></select></div>
+                </div>
                 <div class="fgrp"><label class="flbl">Amount (MMK)</label><input class="finput mono" type="text" inputmode="numeric" id="tx-amt" placeholder="0" autocomplete="off" oninput="formatNumberInput(this); tryAutoFill()"></div>
                 <div class="row2">
                     <div class="fgrp"><label class="flbl">Commission</label><input class="finput mono" type="text" inputmode="numeric" id="tx-comm" placeholder="0" autocomplete="off" oninput="formatNumberInput(this); commChanged=true"></div>
@@ -2266,7 +2269,7 @@ const I18N = {
     all_tabs: 'All Tabs', all_months: 'All Months',
     recycle_bin: 'Recycle Bin', recycle_bin_sub: 'Restore last 5 deleted items', empty_bin: 'Empty Bin',
     restore_all: 'Restore All', restore: 'Restore', item_restored: 'Data Restored Successfully', bin_emptied: 'Recycle Bin Emptied',
-    deleted_to_bin: 'Moved to Recycle Bin'
+    deleted_to_bin: 'Moved to Recycle Bin', transfer_from: 'From (Source)', transfer_to: 'To (Destination)'
   },
   mm: {
     nav_home:'ပင်မ', nav_tx:'ငွေပေး/ယူ', nav_dm:'နေ့စဉ်ငွေစာရင်း', nav_exp:'အသုံးစရိတ်', nav_debts:'အကြွေး', nav_reports:'အစီရင်ခံ',
@@ -2371,7 +2374,7 @@ const I18N = {
     all_tabs: 'Tab အားလုံး', all_months: 'လအားလုံး',
     recycle_bin: 'အမှိုက်ပုံး (Recycle Bin)', recycle_bin_sub: 'ဖျက်လိုက်သော နောက်ဆုံး ၅ ခုအား ပြန်လည်ယူရန်', empty_bin: 'အမှိုက်ပုံးရှင်းမည်',
     restore_all: 'အားလုံးပြန်ယူမည်', restore: 'ပြန်ယူမည်', item_restored: 'ဒေတာ ပြန်လည်ရယူပြီးပါပြီ', bin_emptied: 'အမှိုက်ပုံး ရှင်းလင်းပြီးပါပြီ',
-    deleted_to_bin: 'အမှိုက်ပုံးထဲသို့ ရွှေ့လိုက်ပါပြီ'
+    deleted_to_bin: 'အမှိုက်ပုံးထဲသို့ ရွှေ့လိုက်ပါပြီ', transfer_from: 'ဘယ်ကထွက် (အကောင့်/ငွေသား)', transfer_to: 'ဘယ်ထဲဝင် (အကောင့်/ငွေသား)'
   }
 };
 
@@ -2424,7 +2427,8 @@ function applyLang() {
     document.querySelectorAll('#txTypeBtns button').forEach(b => { if(tbm[b.dataset.t]) b.textContent = t(tbm[b.dataset.t]); }); 
     
     const tlk = ['tx_type_label','tx_id_label','provider_label','amount_label','commission_label','fee_label','note_label','datetime_label']; 
-    document.querySelectorAll('#m-tx .flbl').forEach((l,i) => { if(tlk[i]) l.textContent = t(tlk[i]); }); 
+    document.querySelectorAll('#m-tx .flbl[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n'); el.textContent = t(key);});
     const sTx = document.querySelector('#m-tx .btn-p'); if(sTx) sTx.textContent = t('save_transaction');
     
     document.querySelectorAll('#dmTypeBtns button').forEach(b => {
@@ -2971,28 +2975,66 @@ function delEmoneyProvider(id) {
     renderEmoneyRows(); 
 }
 
+function calcTxBalanceDelta() {
+    // Calculate net cash and per-provider delta from today's transactions
+    const tod = todayStr();
+    const todayTxs = db.transactions.filter(tx => getDateStr(tx.datetime) === tod);
+    let cashDelta = 0;
+    const provDeltas = {};
+    todayTxs.forEach(tx => {
+        const a = Number(tx.amount || 0);
+        const provId = tx.provId || null;
+        switch(tx.txType) {
+            case 'CashIn': case 'SendMoney': case 'Payment': case 'PhoneBill':
+                cashDelta += a;
+                if (provId && provId !== 'cash') provDeltas[provId] = (provDeltas[provId] || 0) - a;
+                break;
+            case 'CashOut': case 'ReceiveMoney':
+                cashDelta -= a;
+                if (provId && provId !== 'cash') provDeltas[provId] = (provDeltas[provId] || 0) + a;
+                break;
+            case 'Transfer':
+                cashDelta += a;
+                if (provId) provDeltas[provId] = (provDeltas[provId] || 0) - a;
+                break;
+        }
+        if (tx.commission && Number(tx.commission) > 0 && provId && provId !== 'cash') {
+            provDeltas[provId] = (provDeltas[provId] || 0) + Number(tx.commission);
+        }
+        if (tx.fee && Number(tx.fee) > 0) cashDelta += Number(tx.fee);
+    });
+    return { cashDelta, provDeltas };
+}
+
 function saveOpening() {
     const cash = getNum('op-cash') || 0; 
     const genEmoney = getNum('op-emoney') || 0;
     
     db.opening.date = todayStr(); 
-    db.opening.cash = cash; 
-    db.cashBalance = cash;
-    
+    db.opening.cash = cash;
+
     let pGen = db.providers.find(p => p.id === 'p_default_emoney');
     if (!pGen) { 
         pGen = {id: 'p_default_emoney', name: 'General E-Money', icon: '', balance: 0}; 
         db.providers.push(pGen); 
     }
     db.opening.providers['p_default_emoney'] = genEmoney;
-    
-    db.providers.forEach(p => { p.balance = Number(db.opening.providers[p.id]) || 0; });
+
+    // Apply opening balances to providers first, then add today's tx deltas
+    const { cashDelta, provDeltas } = calcTxBalanceDelta();
+    db.cashBalance = cash + cashDelta;
+    db.providers.forEach(p => {
+        const openingBal = Number(db.opening.providers[p.id]) || 0;
+        const txDelta = provDeltas[p.id] || 0;
+        p.balance = openingBal + txDelta;
+    });
     
     const totalEm = Object.values(db.opening.providers || {}).reduce((a, v) => a + (Number(v) || 0), 0);
     
     db.openingsHistory.unshift({
         date: todayStr(),
         time: new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', hour12:true}),
+        ts: Date.now(),
         cash: cash,
         emoney: totalEm,
         total: cash + totalEm
@@ -3431,9 +3473,113 @@ const SEASON_DATA = {
     },
     // Defaults for remaining holidays (simple moon/stars/petals)
     _default_moon: {
-        bg: null, // keep holiday-specific bg
         buildScene(scene) {
             scene.insertAdjacentHTML('beforeend',`<div class="s-moon" style="top:10px;right:18px;width:28px;height:28px;animation-duration:2.5s"></div>`);
+        }
+    },
+    tabaung: {
+        buildScene(scene) {
+            // Full moon + lotus petals
+            scene.insertAdjacentHTML('beforeend',`<div class="s-moon" style="top:8px;right:22px;width:36px;height:36px;animation-duration:3s"></div>`);
+            [8,22,38,55,70,85].forEach((l,i)=>{
+                scene.insertAdjacentHTML('beforeend',`
+                <div class="s-petal" style="left:${l}%;animation-duration:${2.5+(i%3)*0.4}s;animation-delay:${(i*0.32).toFixed(2)}s">
+                    <svg width="13" height="16" viewBox="0 0 13 16"><path d="M6.5 1 C10 4 11 9 6.5 15 C2 9 3 4 6.5 1Z" fill="rgba(186,104,200,0.85)"/></svg>
+                </div>`);
+            });
+        }
+    },
+    union_day: {
+        buildScene(scene) {
+            // Doves + stars
+            [[15,20],[60,12],[85,18]].forEach(([l,t],i)=>{
+                scene.insertAdjacentHTML('beforeend',`
+                <div style="position:absolute;left:${l}%;top:${t}px;opacity:0.55;animation:lanternFloat ${2.5+(i*0.4)}s ease-in-out infinite;animation-delay:${i*0.5}s">
+                    <svg width="28" height="18" viewBox="0 0 28 18"><path d="M14 10 C10 4 2 2 2 6 C2 10 8 10 14 10Z" fill="white"/><path d="M14 10 C18 4 26 2 26 6 C26 10 20 10 14 10Z" fill="rgba(255,255,255,0.85)"/><circle cx="6" cy="6" r="1.5" fill="rgba(200,200,255,0.9)"/></svg>
+                </div>`);
+            });
+            [10,30,50,72,90].forEach((l,i)=>{
+                scene.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:${l}%;top:${6+(i%3)*8}px;color:rgba(255,220,80,0.7);font-size:${0.65+(i%2)*0.15}rem;animation:flicker ${1.5+(i%3)*0.4}s ease-in-out infinite;animation-delay:${i*0.2}s">★</div>`);
+            });
+        }
+    },
+    karen_newyear: {
+        buildScene(scene) {
+            // Drum + falling flowers
+            scene.insertAdjacentHTML('beforeend',`
+            <svg style="position:absolute;bottom:4px;right:12px;opacity:0.4;width:42px;height:40px" viewBox="0 0 42 40">
+                <ellipse cx="21" cy="8" rx="16" ry="6" fill="#c2410c"/>
+                <rect x="5" y="8" width="32" height="24" fill="#b45309"/>
+                <ellipse cx="21" cy="32" rx="16" ry="6" fill="#c2410c"/>
+                <line x1="21" y1="2" x2="21" y2="38" stroke="rgba(255,200,100,0.6)" stroke-width="1.5"/>
+            </svg>`);
+            [8,22,40,58,74,88].forEach((l,i)=>{
+                scene.insertAdjacentHTML('beforeend',`
+                <div class="s-petal" style="left:${l}%;animation-duration:${2.0+(i%3)*0.5}s;animation-delay:${(i*0.3).toFixed(2)}s">
+                    <svg width="11" height="11" viewBox="0 0 11 11"><circle cx="5.5" cy="5.5" r="4.5" fill="rgba(251,113,133,0.85)"/><circle cx="5.5" cy="5.5" r="2" fill="rgba(255,200,100,0.7)"/></svg>
+                </div>`);
+            });
+        }
+    },
+    workers_day: {
+        buildScene(scene) {
+            // Gear silhouettes + stars
+            scene.insertAdjacentHTML('beforeend',`
+            <svg style="position:absolute;bottom:2px;left:6px;opacity:0.3;width:46px;height:46px" viewBox="0 0 46 46">
+                <circle cx="23" cy="23" r="10" fill="none" stroke="#93C5FD" stroke-width="4"/>
+                <circle cx="23" cy="23" r="5" fill="#93C5FD" opacity="0.5"/>
+                ${[0,45,90,135,180,225,270,315].map(a=>`<rect x="21" y="2" width="4" height="8" rx="2" fill="#93C5FD" opacity="0.6" transform="rotate(${a} 23 23)"/>`).join('')}
+            </svg>
+            <svg style="position:absolute;bottom:2px;right:10px;opacity:0.22;width:34px;height:34px" viewBox="0 0 34 34">
+                <circle cx="17" cy="17" r="7" fill="none" stroke="#93C5FD" stroke-width="3"/>
+                ${[0,60,120,180,240,300].map(a=>`<rect x="15.5" y="2" width="3" height="6" rx="1.5" fill="#93C5FD" transform="rotate(${a} 17 17)"/>`).join('')}
+            </svg>`);
+        }
+    },
+    martyrs_day: {
+        buildScene(scene) {
+            // Solemn: wilted roses + stars
+            [12,35,58,80].forEach((l,i)=>{
+                scene.insertAdjacentHTML('beforeend',`
+                <div class="s-petal" style="left:${l}%;animation-duration:${3+(i%2)*0.8}s;animation-delay:${(i*0.5).toFixed(2)}s">
+                    <svg width="14" height="16" viewBox="0 0 14 16"><path d="M7 1 C10 3 12 7 7 14 C2 7 4 3 7 1Z" fill="rgba(180,30,30,0.7)"/></svg>
+                </div>`);
+            });
+            [8,28,52,75,92].forEach((l,i)=>{
+                scene.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:${l}%;top:${4+(i%3)*10}px;color:rgba(200,200,255,0.5);font-size:0.6rem;animation:flicker ${2+(i%3)*0.5}s ease-in-out infinite;animation-delay:${i*0.3}s">★</div>`);
+            });
+        }
+    },
+    dhamma_day: {
+        buildScene(scene) {
+            // Dharma wheel + lotus + candles
+            scene.insertAdjacentHTML('beforeend',`
+            <svg style="position:absolute;top:8px;left:14px;opacity:0.3;width:44px;height:44px" viewBox="0 0 44 44">
+                <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,235,150,0.9)" stroke-width="2"/>
+                <circle cx="22" cy="22" r="5" fill="rgba(255,235,150,0.7)"/>
+                ${[0,40,80,120,160,200,240,280,320].map(a=>`<line x1="22" y1="22" x2="${22+17*Math.cos((a-90)*Math.PI/180)}" y2="${22+17*Math.sin((a-90)*Math.PI/180)}" stroke="rgba(255,235,150,0.8)" stroke-width="1.5"/>`).join('')}
+            </svg>`);
+            [20,45,70,90].forEach((l,i)=>{
+                scene.insertAdjacentHTML('beforeend',`
+                <div style="position:absolute;bottom:5px;left:${l}%">
+                    <svg width="12" height="20" viewBox="0 0 12 20"><rect x="3.5" y="8" width="5" height="12" rx="1" fill="rgba(255,220,160,0.65)"/>
+                    <ellipse cx="6" cy="7" rx="3" ry="4" fill="rgba(255,180,40,0.9)" class="s-candle-flame" style="animation-duration:${0.55+(i%3)*0.12}s;animation-delay:${(i*0.1).toFixed(2)}s"/></svg>
+                </div>`);
+            });
+        }
+    },
+    national_day: {
+        buildScene(scene) {
+            // Stars + flag colours
+            [[10,10],[28,6],[48,14],[68,8],[85,12]].forEach(([l,t],i)=>{
+                scene.insertAdjacentHTML('beforeend',`<div style="position:absolute;left:${l}%;top:${t}px;color:rgba(255,220,80,${0.5+(i%3)*0.15});font-size:${0.8+(i%2)*0.2}rem;animation:flicker ${1.8+(i%3)*0.35}s ease-in-out infinite;animation-delay:${i*0.25}s">★</div>`);
+            });
+            scene.insertAdjacentHTML('beforeend',`
+            <svg style="position:absolute;bottom:4px;right:10px;opacity:0.3;width:46px;height:30px" viewBox="0 0 46 30">
+                <rect width="46" height="10" fill="#EF4444"/>
+                <rect y="10" width="46" height="10" fill="white"/>
+                <rect y="20" width="46" height="10" fill="#3B82F6"/>
+            </svg>`);
         }
     }
 };
@@ -3442,96 +3588,170 @@ function updateSeasonalDecorations() {
     const hero = document.querySelector('.hero');
     if (!hero) return;
 
-    // Clean up previous scene
+    // Clean up previous scene & reset BG
     hero.querySelectorAll('.season-scene, .hero-festival-title').forEach(el => el.remove());
     document.documentElement.style.setProperty('--hero-bg', 'linear-gradient(135deg,#3B5BDB 0%,#7048E8 60%,#9B59B6 100%)');
 
-    // Only run on Home screen
+    // Only render on Home screen
     if (typeof curPage !== 'undefined' && curPage !== 'home') return;
 
     const now = new Date();
-    const yr = now.getFullYear();
+    const yr  = now.getFullYear();
     const todayMs = new Date(yr, now.getMonth(), now.getDate()).getTime();
 
-    const chineseNY = { 2024:{m:2,d:10}, 2025:{m:1,d:29}, 2026:{m:2,d:17} };
-    const eidFitr   = { 2024:{m:4,d:10}, 2025:{m:3,d:31}, 2026:{m:3,d:20} };
-    const diwali    = { 2024:{m:11,d:1}, 2025:{m:10,d:20}, 2026:{m:11,d:8} };
+    // ── Perpetual lunar-calendar algorithms (work for any year) ─────────────
+    // Jean Meeus new moon formula — accurate to ±1 day
+    function jde_new_moon(k) {
+        const T = k / 1236.85, T2 = T * T;
+        let JDE = 2451550.09766 + 29.530588861 * k + 0.00015437 * T2;
+        const M  = (2.5534  + 29.10535670  * k) * Math.PI / 180;
+        const Ml = (201.5643 + 385.81693528 * k + 0.0107582 * T2) * Math.PI / 180;
+        const F  = (160.7108 + 390.67050284 * k - 0.0016118 * T2) * Math.PI / 180;
+        JDE += -0.40720 * Math.sin(Ml) + 0.17241 * Math.sin(M)
+             +  0.01608 * Math.sin(2 * Ml) + 0.01039 * Math.sin(2 * F)
+             +  0.00739 * Math.sin(Ml - M) - 0.00514 * Math.sin(Ml + M);
+        return JDE;
+    }
+    function jde_to_utc(jde) { return new Date((jde - 2440587.5) * 86400000); }
+    function kBase(year)     { return Math.round((year - 2000) * 12.3685); }
 
+    // Chinese New Year: first new moon in Jan 20 – Feb 20 window
+    function chineseNewYear(year) {
+        const k0 = kBase(year);
+        for (let dk = -2; dk <= 4; dk++) {
+            const d = jde_to_utc(jde_new_moon(k0 + dk));
+            if (d.getUTCFullYear() === year) {
+                const m = d.getUTCMonth(), day = d.getUTCDate();
+                if ((m === 0 && day >= 20) || (m === 1 && day <= 20))
+                    return { m: m + 1, d: day };
+            }
+        }
+        const d = jde_to_utc(jde_new_moon(k0));
+        return { m: d.getUTCMonth() + 1, d: d.getUTCDate() };
+    }
+
+    // Eid al-Fitr: crescent sighting ~1-2 days after new moon ending Ramadan.
+    // Anchor: Apr 10 2024. Islamic year ≈ 354.367 days (drifts ~10.9 days/year).
+    function eidAlFitr(year) {
+        const anchorMs = Date.UTC(2024, 3, 10); // Apr 10 2024
+        const estMs = anchorMs + (year - 2024) * 354.36708 * 86400000;
+        const k0 = kBase(year);
+        let best = null, bestDiff = 30;
+        for (let dk = -3; dk <= 15; dk++) {
+            const nm = jde_to_utc(jde_new_moon(k0 + dk));
+            for (let add = 1; add <= 2; add++) {
+                const eid = new Date(nm.getTime() + add * 86400000);
+                const diff = Math.abs(eid.getTime() - estMs) / 86400000;
+                if (eid.getUTCFullYear() === year && diff < bestDiff) {
+                    bestDiff = diff; best = eid;
+                }
+            }
+        }
+        if (best) return { m: best.getUTCMonth() + 1, d: best.getUTCDate() };
+        const fb = new Date(estMs);
+        return { m: fb.getUTCMonth() + 1, d: fb.getUTCDate() };
+    }
+
+    // Diwali: Amavasya (new moon) in Kartik — Oct or Nov each year
+    function diwali(year) {
+        const k0 = kBase(year);
+        for (let dk = 6; dk <= 13; dk++) {
+            const nm = jde_to_utc(jde_new_moon(k0 + dk));
+            if (nm.getUTCFullYear() === year &&
+               (nm.getUTCMonth() === 9 || nm.getUTCMonth() === 10))
+                return { m: nm.getUTCMonth() + 1, d: nm.getUTCDate() };
+        }
+        return { m: 11, d: 1 };
+    }
+
+    // ── Holiday list (fixed + dynamic) ──────────────────────────────────────
     const holidays = [
-        {id:'newyear',         nameMm:'နှစ်သစ်ကူး',            name:'New Year',            m:1, d:1},
-        {id:'karen_newyear',   nameMm:'ကရင်နှစ်သစ်ကူး',        name:'Karen New Year',      m:1, d:14},
-        {id:'union_day',       nameMm:'ပြည်ထောင်စုနေ့',         name:'Union Day',           m:2, d:12},
-        {id:'valentines',      nameMm:'ချစ်သူများနေ့',          name:"Valentine's Day",     m:2, d:14},
-        {id:'tabaung',         nameMm:'တပေါင်းပွဲတော်',         name:'Tabaung Festival',    m:3, d:6},
-        {id:'thingyan',        nameMm:'သင်္ကြန်ပွဲတော်',        name:'Thingyan Festival',   m:4, d:13},
-        {id:'myanmar_newyear', nameMm:'မြန်မာနှစ်သစ်ကူး',       name:'Myanmar New Year',    m:4, d:17},
-        {id:'workers_day',     nameMm:'အလုပ်သမားနေ့',           name:"Workers' Day",        m:5, d:1},
-        {id:'kasone',          nameMm:'ကဆုန်လပြည့်',            name:'Kasone Festival',     m:5, d:15},
-        {id:'waso_begin',      nameMm:'ဝါဆိုလပြည့်',            name:'Waso Festival',       m:7, d:10},
-        {id:'martyrs_day',     nameMm:'အာဇာနည်နေ့',            name:"Martyrs' Day",        m:7, d:19},
-        {id:'dhamma_day',      nameMm:'ဓမ္မစကြာနေ့',            name:'Dhamma Day',          m:8, d:1},
-        {id:'waso_end',        nameMm:'သီတင်းကျွတ်လပြည့်',     name:'End of Waso',         m:9, d:15},
-        {id:'thadingyut',      nameMm:'သီတင်းကျွတ်ပွဲတော်',    name:'Thadingyut Festival', m:10,d:17},
-        {id:'halloween',       nameMm:'ဟယ်လိုဝင်း',             name:'Halloween',           m:10,d:31},
-        {id:'tazaungdaing',    nameMm:'တန်ဆောင်တိုင်ပွဲတော်',  name:'Tazaungdaing',        m:11,d:15},
-        {id:'national_day',    nameMm:'အမျိုးသားနေ့',           name:'National Day',        m:12,d:10},
-        {id:'christmas',       nameMm:'ခရစ္စမတ်',               name:'Christmas',           m:12,d:25},
-        {id:'new_year_eve',    nameMm:'နှစ်သစ်ကူးအကြိုည',      name:"New Year's Eve",      m:12,d:31},
+        {id:'newyear',         nameMm:'နှစ်သစ်ကူး',           name:'New Year',            m:1,  d:1},
+        {id:'karen_newyear',   nameMm:'ကရင်နှစ်သစ်ကူး',       name:'Karen New Year',      m:1,  d:14},
+        {id:'union_day',       nameMm:'ပြည်ထောင်စုနေ့',        name:'Union Day',           m:2,  d:12},
+        {id:'valentines',      nameMm:'ချစ်သူများနေ့',         name:"Valentine's Day",     m:2,  d:14},
+        {id:'tabaung',         nameMm:'တပေါင်းပွဲတော်',        name:'Tabaung Festival',    m:3,  d:6},
+        {id:'thingyan',        nameMm:'သင်္ကြန်ပွဲတော်',       name:'Thingyan Festival',   m:4,  d:13},
+        {id:'myanmar_newyear', nameMm:'မြန်မာနှစ်သစ်ကူး',      name:'Myanmar New Year',    m:4,  d:17},
+        {id:'workers_day',     nameMm:'အလုပ်သမားနေ့',          name:"Workers' Day",        m:5,  d:1},
+        {id:'kasone',          nameMm:'ကဆုန်လပြည့်',           name:'Kasone Festival',     m:5,  d:15},
+        {id:'waso_begin',      nameMm:'ဝါဆိုလပြည့်',           name:'Waso Festival',       m:7,  d:10},
+        {id:'martyrs_day',     nameMm:'အာဇာနည်နေ့',           name:"Martyrs' Day",        m:7,  d:19},
+        {id:'dhamma_day',      nameMm:'ဓမ္မစကြာနေ့',           name:'Dhamma Day',          m:8,  d:1},
+        {id:'waso_end',        nameMm:'သီတင်းကျွတ်လပြည့်',    name:'End of Waso',         m:9,  d:15},
+        {id:'thadingyut',      nameMm:'သီတင်းကျွတ်ပွဲတော်',   name:'Thadingyut Festival', m:10, d:17},
+        {id:'halloween',       nameMm:'ဟယ်လိုဝင်း',            name:'Halloween',           m:10, d:31},
+        {id:'tazaungdaing',    nameMm:'တန်ဆောင်တိုင်ပွဲတော်', name:'Tazaungdaing',        m:11, d:15},
+        {id:'national_day',    nameMm:'အမျိုးသားနေ့',          name:'National Day',        m:12, d:10},
+        {id:'christmas',       nameMm:'ခရစ္စမတ်',              name:'Christmas',           m:12, d:25},
+        {id:'new_year_eve',    nameMm:'နှစ်သစ်ကူးအကြိုည',     name:"New Year's Eve",      m:12, d:31},
     ];
-    if (chineseNY[yr]) holidays.push({id:'chinese_ny', nameMm:'တရုတ်နှစ်သစ်ကူး', name:'Chinese New Year', m:chineseNY[yr].m, d:chineseNY[yr].d});
-    if (eidFitr[yr])   holidays.push({id:'eid_fitr',   nameMm:'အီဒွလ်ဖီသရ်',    name:'Eid al-Fitr',      m:eidFitr[yr].m,   d:eidFitr[yr].d});
-    if (diwali[yr])    holidays.push({id:'diwali',     nameMm:'ဒီပါဝလီ',        name:'Deepavali',        m:diwali[yr].m,    d:diwali[yr].d});
 
-    // Find active holiday: 3 days before → on the day (NOT the day after)
+    // Dynamic lunar holidays — computed fresh each year
+    try {
+        const cny = chineseNewYear(yr);
+        holidays.push({id:'chinese_ny', nameMm:'တရုတ်နှစ်သစ်ကူး', name:'Chinese New Year', m:cny.m, d:cny.d});
+    } catch(e) {}
+    try {
+        const eid = eidAlFitr(yr);
+        holidays.push({id:'eid_fitr', nameMm:'အီဒွလ်ဖီသရ်', name:'Eid al-Fitr', m:eid.m, d:eid.d});
+    } catch(e) {}
+    try {
+        const dw = diwali(yr);
+        holidays.push({id:'diwali', nameMm:'ဒီပါဝလီ', name:'Deepavali', m:dw.m, d:dw.d});
+    } catch(e) {}
+
+    // ── BG gradient map ──────────────────────────────────────────────────────
+    const bgMap = {
+        thingyan:        'linear-gradient(135deg,#0ea5e9 0%,#06b6d4 45%,#0d9488 100%)',
+        myanmar_newyear: 'linear-gradient(135deg,#f59e0b 0%,#ea580c 50%,#9a3412 100%)',
+        thadingyut:      'linear-gradient(135deg,#1c1917 0%,#44403c 40%,#78350f 100%)',
+        tazaungdaing:    'linear-gradient(135deg,#1e1b4b 0%,#4c1d95 50%,#831843 100%)',
+        christmas:       'linear-gradient(135deg,#14532d 0%,#166534 50%,#7f1d1d 100%)',
+        newyear:         'linear-gradient(135deg,#1e1b4b 0%,#3730a3 50%,#4c1d95 100%)',
+        new_year_eve:    'linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%)',
+        valentines:      'linear-gradient(135deg,#9d174d 0%,#db2777 50%,#be185d 100%)',
+        kasone:          'linear-gradient(135deg,#14532d 0%,#166534 50%,#065f46 100%)',
+        waso_begin:      'linear-gradient(135deg,#3b0764 0%,#581c87 50%,#701a75 100%)',
+        waso_end:        'linear-gradient(135deg,#7c2d12 0%,#c2410c 50%,#9a3412 100%)',
+        halloween:       'linear-gradient(135deg,#431407 0%,#7c2d12 45%,#1c0533 100%)',
+        chinese_ny:      'linear-gradient(135deg,#7f1d1d 0%,#991b1b 50%,#78350f 100%)',
+        eid_fitr:        'linear-gradient(135deg,#064e3b 0%,#065f46 50%,#0f4c4c 100%)',
+        diwali:          'linear-gradient(135deg,#431407 0%,#9a3412 50%,#3b0764 100%)',
+        karen_newyear:   'linear-gradient(135deg,#991b1b 0%,#b91c1c 50%,#6b21a8 100%)',
+        union_day:       'linear-gradient(135deg,#166534 0%,#15803d 50%,#b91c1c 100%)',
+        tabaung:         'linear-gradient(135deg,#78350f 0%,#b45309 50%,#4a044e 100%)',
+        workers_day:     'linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 50%,#991b1b 100%)',
+        martyrs_day:     'linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#7f1d1d 100%)',
+        dhamma_day:      'linear-gradient(135deg,#500724 0%,#831843 50%,#9a3412 100%)',
+        national_day:    'linear-gradient(135deg,#1e40af 0%,#1d4ed8 50%,#b91c1c 100%)',
+    };
+
+    // ── Find nearest upcoming/today holiday (within 3 days) ─────────────────
     let activeHoliday = null, minDiff = 999;
     for (const h of holidays) {
+        if (!h.m || !h.d) continue;
         const hMs = new Date(yr, h.m - 1, h.d).getTime();
-        const diff = Math.round((hMs - todayMs) / 86400000); // positive = upcoming, 0 = today, negative = past
+        const diff = Math.round((hMs - todayMs) / 86400000); // 0=today, 1=tomorrow, 3=3days ahead
         if (diff >= 0 && diff <= 3 && diff < minDiff) {
-            activeHoliday = h; minDiff = diff;
+            activeHoliday = h;
+            minDiff = diff;
         }
     }
     if (!activeHoliday) return;
 
-    // Get scene config (fallback to default moon for unspecified ones)
-    const sceneKey = SEASON_DATA[activeHoliday.id] ? activeHoliday.id : null;
-    const sceneCfg = sceneKey ? SEASON_DATA[sceneKey] : null;
-
-    // Apply holiday-specific gradient BG
-    const bgMap = {
-        thingyan:'linear-gradient(135deg,#0ea5e9 0%,#06b6d4 45%,#0d9488 100%)',
-        myanmar_newyear:'linear-gradient(135deg,#f59e0b 0%,#ea580c 50%,#9a3412 100%)',
-        thadingyut:'linear-gradient(135deg,#1c1917 0%,#44403c 40%,#78350f 100%)',
-        tazaungdaing:'linear-gradient(135deg,#1e1b4b 0%,#4c1d95 50%,#831843 100%)',
-        christmas:'linear-gradient(135deg,#14532d 0%,#166534 50%,#7f1d1d 100%)',
-        newyear:'linear-gradient(135deg,#1e1b4b 0%,#3730a3 50%,#4c1d95 100%)',
-        new_year_eve:'linear-gradient(135deg,#0f0c29 0%,#302b63 50%,#24243e 100%)',
-        valentines:'linear-gradient(135deg,#9d174d 0%,#db2777 50%,#be185d 100%)',
-        kasone:'linear-gradient(135deg,#14532d 0%,#166534 50%,#065f46 100%)',
-        waso_begin:'linear-gradient(135deg,#3b0764 0%,#581c87 50%,#701a75 100%)',
-        waso_end:'linear-gradient(135deg,#7c2d12 0%,#c2410c 50%,#9a3412 100%)',
-        halloween:'linear-gradient(135deg,#431407 0%,#7c2d12 45%,#1c0533 100%)',
-        chinese_ny:'linear-gradient(135deg,#7f1d1d 0%,#991b1b 50%,#78350f 100%)',
-        eid_fitr:'linear-gradient(135deg,#064e3b 0%,#065f46 50%,#0f4c4c 100%)',
-        diwali:'linear-gradient(135deg,#431407 0%,#9a3412 50%,#3b0764 100%)',
-        karen_newyear:'linear-gradient(135deg,#991b1b 0%,#b91c1c 50%,#6b21a8 100%)',
-        union_day:'linear-gradient(135deg,#166534 0%,#15803d 50%,#b91c1c 100%)',
-        tabaung:'linear-gradient(135deg,#78350f 0%,#b45309 50%,#4a044e 100%)',
-        workers_day:'linear-gradient(135deg,#1e3a8a 0%,#1d4ed8 50%,#991b1b 100%)',
-        martyrs_day:'linear-gradient(135deg,#1e1b4b 0%,#312e81 50%,#7f1d1d 100%)',
-        dhamma_day:'linear-gradient(135deg,#500724 0%,#831843 50%,#9a3412 100%)',
-        national_day:'linear-gradient(135deg,#1e40af 0%,#1d4ed8 50%,#b91c1c 100%)',
-    };
+    // Apply BG
     if (bgMap[activeHoliday.id]) {
         document.documentElement.style.setProperty('--hero-bg', bgMap[activeHoliday.id]);
     }
 
-    // Build scene container
+    // Build SVG scene
     const scene = document.createElement('div');
     scene.className = 'season-scene';
-    if (sceneCfg && sceneCfg.buildScene) {
-        sceneCfg.buildScene(scene);
-    }
+    try {
+        const cfg = SEASON_DATA[activeHoliday.id];
+        if (cfg && typeof cfg.buildScene === 'function') cfg.buildScene(scene);
+    } catch(e) { console.warn('Season scene build error:', e); }
     hero.appendChild(scene);
 
     // Festival title badge
@@ -3679,10 +3899,16 @@ function applyTx(tx) {
             db.cashBalance = (db.cashBalance || 0) - a; 
             if(!isCash) addProvBal(provId, a); 
             break; 
-        case 'Transfer': 
-            db.cashBalance = (db.cashBalance || 0) + a; 
-            addProvBal(provId, -a); 
-            break; 
+        case 'Transfer': {
+            // From: deduct; To: add
+            const fromId2 = tx.transferFromId || provId;
+            const toId2   = tx.transferToId   || 'cash';
+            if (fromId2 === 'cash') { db.cashBalance = (db.cashBalance || 0) - a; }
+            else { addProvBal(fromId2, -a); }
+            if (toId2 === 'cash') { db.cashBalance = (db.cashBalance || 0) + a; }
+            else { addProvBal(toId2, a); }
+            break;
+        } 
     } 
     if(tx.commission && Number(tx.commission) > 0) addProvBal(provId, Number(tx.commission)); 
     if(tx.fee && Number(tx.fee) > 0) db.cashBalance = (db.cashBalance || 0) + Number(tx.fee); 
@@ -3701,10 +3927,15 @@ function reverseTx(tx) {
             db.cashBalance = (db.cashBalance || 0) - a; 
             if(!isCash) addProvBal(provId, a); 
             break; 
-        case 'Transfer':
-            db.cashBalance = (db.cashBalance || 0) - a; 
-            addProvBal(provId, a); 
-            break; 
+        case 'Transfer': {
+            const fromId3 = tx.transferFromId || provId;
+            const toId3   = tx.transferToId   || 'cash';
+            if (fromId3 === 'cash') { db.cashBalance = (db.cashBalance || 0) + a; }
+            else { addProvBal(fromId3, a); }
+            if (toId3 === 'cash') { db.cashBalance = (db.cashBalance || 0) - a; }
+            else { addProvBal(toId3, -a); }
+            break;
+        } 
         case 'CashOut': 
         case 'ReceiveMoney':
             db.cashBalance = (db.cashBalance || 0) + a; 
@@ -3715,11 +3946,79 @@ function reverseTx(tx) {
     if(tx.fee && Number(tx.fee) > 0) db.cashBalance = (db.cashBalance || 0) - Number(tx.fee); 
 }
 
+function buildTransferDropdowns() {
+    const fromSel = document.getElementById('tx-transfer-from');
+    const toSel   = document.getElementById('tx-transfer-to');
+    if (!fromSel || !toSel) return;
+    const options = [
+        { value: 'cash', label: 'Cash (ငွေသား)' },
+        ...db.providers.map(p => ({ value: p.id, label: p.name }))
+    ];
+    const makeOpts = (sel, selectedVal) => {
+        sel.innerHTML = options.map(o =>
+            `<option value="${o.value}"${o.value === selectedVal ? ' selected' : ''}>${o.label}</option>`
+        ).join('');
+    };
+    const curFrom = fromSel.value || 'cash';
+    const curTo   = toSel.value   || (options[1] ? options[1].value : 'cash');
+    makeOpts(fromSel, curFrom);
+    makeOpts(toSel,   curTo);
+}
+
+function onTransferFromChange() {
+    // Prevent From == To
+    const f = document.getElementById('tx-transfer-from');
+    const t2 = document.getElementById('tx-transfer-to');
+    if (f && t2 && f.value === t2.value) {
+        // Pick the next different option
+        const opts = Array.from(t2.options).map(o => o.value);
+        const alt = opts.find(v => v !== f.value);
+        if (alt) t2.value = alt;
+    }
+    syncTransferProviderField();
+}
+
+function onTransferToChange() {
+    const f = document.getElementById('tx-transfer-from');
+    const t2 = document.getElementById('tx-transfer-to');
+    if (f && t2 && f.value === t2.value) {
+        const opts = Array.from(f.options).map(o => o.value);
+        const alt = opts.find(v => v !== t2.value);
+        if (alt) f.value = alt;
+    }
+    syncTransferProviderField();
+}
+
+function syncTransferProviderField() {
+    // Keep legacy tx-provider field in sync with Transfer "From" for display purposes
+    const fromSel = document.getElementById('tx-transfer-from');
+    const provInp = document.getElementById('tx-provider');
+    if (!fromSel || !provInp) return;
+    const fromId = fromSel.value;
+    if (fromId === 'cash') {
+        provInp.value = 'Cash';
+    } else {
+        const p = db.providers.find(x => x.id === fromId);
+        if (p) provInp.value = p.name;
+    }
+}
+
 function setTxType(t_type, btn) { 
     txType = t_type; 
     document.querySelectorAll('#txTypeBtns button').forEach(b => b.classList.remove('on')); 
     if(btn) btn.classList.add('on'); 
-    commChanged = false; feeChanged = false; 
+    commChanged = false; feeChanged = false;
+    // Show/hide transfer-specific fields
+    const tfEl = document.getElementById('tx-transfer-fields');
+    const provRow = document.getElementById('tx-provider') ? document.getElementById('tx-provider').closest('.fgrp') : null;
+    if (t_type === 'Transfer') {
+        if (tfEl) tfEl.style.display = 'block';
+        if (provRow) provRow.style.display = 'none';
+        buildTransferDropdowns();
+    } else {
+        if (tfEl) tfEl.style.display = 'none';
+        if (provRow) provRow.style.display = 'block';
+    }
     tryAutoFill(); 
 }
 
@@ -3739,13 +4038,30 @@ function openTxModal(id = null) {
         document.getElementById('tx-comm').value = (t_obj.commission || '').toLocaleString('en-US'); 
         document.getElementById('tx-fee').value = (t_obj.fee || '').toLocaleString('en-US'); 
         document.getElementById('tx-note').value = t_obj.note || ''; 
-        document.getElementById('tx-dt').value = t_obj.datetime || nowDT(); 
+        document.getElementById('tx-dt').value = t_obj.datetime || nowDT();
+        // Restore Transfer From/To
+        const tfEl2 = document.getElementById('tx-transfer-fields');
+        const provRow2 = document.getElementById('tx-provider') ? document.getElementById('tx-provider').closest('.fgrp') : null;
+        if (txType === 'Transfer') {
+            if (tfEl2) tfEl2.style.display = 'block';
+            if (provRow2) provRow2.style.display = 'none';
+            buildTransferDropdowns();
+            if (t_obj.transferFromId) { const fs = document.getElementById('tx-transfer-from'); if(fs) fs.value = t_obj.transferFromId; }
+            if (t_obj.transferToId)   { const ts = document.getElementById('tx-transfer-to');   if(ts) ts.value = t_obj.transferToId;   }
+        } else {
+            if (tfEl2) tfEl2.style.display = 'none';
+            if (provRow2) provRow2.style.display = 'block';
+        }
     } else { 
         txType = 'CashIn'; 
         document.querySelectorAll('#txTypeBtns button').forEach(b => b.classList.toggle('on', b.dataset.t === 'CashIn')); 
         document.getElementById('tx-id').value = genId();
         ['tx-provider','tx-amt','tx-comm','tx-fee','tx-note'].forEach(elId => { document.getElementById(elId).value = ''; }); 
-        document.getElementById('tx-dt').value = nowDT(); 
+        document.getElementById('tx-dt').value = nowDT();
+        const tfEl3 = document.getElementById('tx-transfer-fields');
+        const provRow3 = document.getElementById('tx-provider') ? document.getElementById('tx-provider').closest('.fgrp') : null;
+        if (tfEl3) tfEl3.style.display = 'none';
+        if (provRow3) provRow3.style.display = 'block';
     } 
     openM('m-tx'); 
 }
@@ -3754,13 +4070,26 @@ function saveTx() {
     const amt = getNum('tx-amt'); 
     if(!amt) { toast('Enter an amount'); return; } 
     
-    const provName = (document.getElementById('tx-provider').value || '').trim(); 
     const commission = getNum('tx-comm') || 0; 
     const fee = getNum('tx-fee') || 0; 
     const note = document.getElementById('tx-note').value; 
     const datetime = document.getElementById('tx-dt').value || nowDT(); 
     const txId = document.getElementById('tx-id').value || genId(); 
     
+    let provName = (document.getElementById('tx-provider').value || '').trim();
+    let transferFromId = null, transferToId = null;
+    if (txType === 'Transfer') {
+        const fromSel = document.getElementById('tx-transfer-from');
+        const toSel   = document.getElementById('tx-transfer-to');
+        transferFromId = fromSel ? fromSel.value : 'cash';
+        transferToId   = toSel   ? toSel.value   : 'cash';
+        if (transferFromId === transferToId) { toast('From and To cannot be the same'); return; }
+        // derive display name for provider field
+        if (transferFromId === 'cash') { provName = 'Cash'; } else {
+            const pf = db.providers.find(x => x.id === transferFromId);
+            if (pf) provName = pf.name;
+        }
+    }
     if(provName && !db.savedProviders.includes(provName)) db.savedProviders.push(provName); 
     const provMatch = db.providers.find(p => p.name.toLowerCase() === provName.toLowerCase()); 
     const provId = provMatch ? provMatch.id : ('dyn_' + provName.toLowerCase().replace(/[^a-z0-9]/g, '_')); 
@@ -3773,7 +4102,9 @@ function saveTx() {
         db.transactions = db.transactions.filter(x => x.id !== editTxId);
     } 
     
-    const tx = { id: editTxId || genId(), txId, txType, provider: provName, provId, amount: amt, commission, fee, note, datetime }; 
+    const tx = { id: editTxId || genId(), txId, txType, provider: provName, provId, amount: amt, commission, fee, note, datetime,
+        ts: Date.now(),
+        ...(txType === 'Transfer' ? { transferFromId, transferToId } : {}) }; 
     db.transactions.push(tx); 
     applyTx(tx); 
     
@@ -5912,13 +6243,30 @@ async function pullFromCloud(force=false) {
 
             const mergeById = (cloudArr, localArr) => {
                 const map = new Map();
+                const getTs = (x) => {
+                    if (x.updatedAt) return new Date(x.updatedAt).getTime() || 0;
+                    if (x.ts && typeof x.ts === 'number') return x.ts;
+                    if (x.datetime) { const d = new Date(x.datetime); return isNaN(d) ? 0 : d.getTime(); }
+                    if (x.date) { const d = new Date(x.date + 'T00:00:00'); return isNaN(d) ? 0 : d.getTime(); }
+                    return 0;
+                };
                 const processItem = (x) => {
                     if (!x) return;
                     if (!x.id) x.id = x.txId || ('OLD_' + Math.random().toString(36).substr(2, 9));
-                    if (!merged.deletedIds.includes(x.id)) {
+                    if (merged.deletedIds.includes(x.id)) return;
+                    const existing = map.get(x.id);
+                    if (!existing) {
                         map.set(x.id, x);
+                    } else {
+                        // Keep the newer version based on timestamp
+                        const existingTs = getTs(existing);
+                        const newTs = getTs(x);
+                        if (newTs > existingTs) {
+                            map.set(x.id, x);
+                        }
                     }
                 };
+                // Process cloud first, then local — local wins on tie (same timestamp)
                 if (Array.isArray(cloudArr)) cloudArr.forEach(processItem);
                 if (Array.isArray(localArr)) localArr.forEach(processItem);
                 return Array.from(map.values());
@@ -5969,14 +6317,39 @@ async function pullFromCloud(force=false) {
             };
             merged.debtSubFolders = mergeSubFolders(cloud.debtSubFolders, db.debtSubFolders);
 
-            if (!merged.opening || merged.opening.date !== db.opening?.date) {
-                if (db.opening && db.opening.date) merged.opening = db.opening;
+            // Merge opening: prefer the one with the most recent date; if same date, prefer local
+            {
+                const cloudDate = (cloud.opening && cloud.opening.date) ? cloud.opening.date : '';
+                const localDate = (db.opening && db.opening.date) ? db.opening.date : '';
+                if (!cloudDate && localDate) {
+                    merged.opening = db.opening;
+                } else if (cloudDate && !localDate) {
+                    merged.opening = cloud.opening;
+                } else if (cloudDate && localDate) {
+                    // Both exist — newer date wins; tie goes to local
+                    merged.opening = cloudDate > localDate ? cloud.opening : db.opening;
+                }
             }
             const ohMap = new Map();
             [...(cloud.openingsHistory||[]), ...(db.openingsHistory||[])].forEach(h => {
-                if(h) ohMap.set(h.date + '_' + h.time, h);
+                if (!h) return;
+                // Use ts if present for more precise dedup; fallback to date+time string
+                const key = h.ts ? String(h.ts) : (h.date + '_' + h.time);
+                const existing = ohMap.get(key);
+                if (!existing) {
+                    ohMap.set(key, h);
+                } else {
+                    // Keep the record with ts if one has it and the other doesn't
+                    if (!existing.ts && h.ts) ohMap.set(key, h);
+                }
             });
-            merged.openingsHistory = Array.from(ohMap.values());
+            merged.openingsHistory = Array.from(ohMap.values())
+                .sort((a, b) => {
+                    const ta = a.ts || new Date((a.date||'') + 'T00:00:00').getTime() || 0;
+                    const tb = b.ts || new Date((b.date||'') + 'T00:00:00').getTime() || 0;
+                    return tb - ta;
+                })
+                .slice(0, 30);
             
             merged.savedProviders  = [...new Set([...(cloud.savedProviders||[]),  ...(db.savedProviders||[])])];
             merged.savedDmCategories = [...new Set([...(cloud.savedDmCategories||[]), ...(db.savedDmCategories||[])])];
